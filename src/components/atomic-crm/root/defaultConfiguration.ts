@@ -11,15 +11,21 @@ export const defaultCurrency = "BRL";
 export const defaultTitle = "CRM Pro";
 
 export const defaultCompanySectors = [
+  { value: "communication-services", label: "Serviços de comunicação" },
+  { value: "consumer-discretionary", label: "Consumo discricionário" },
+  { value: "consumer-staples", label: "Bens de consumo essenciais" },
+  { value: "energy", label: "Energia" },
+  { value: "financials", label: "Financeiro" },
+  { value: "health-care", label: "Saúde" },
+  { value: "industrials", label: "Indústria" },
+  { value: "information-technology", label: "Tecnologia da informação" },
+  { value: "materials", label: "Materiais" },
+  { value: "real-estate", label: "Imobiliário" },
+  { value: "utilities", label: "Serviços públicos" },
   { value: "construction", label: "Construção" },
   { value: "commerce", label: "Comércio" },
   { value: "services", label: "Serviços" },
-  { value: "industry", label: "Indústria" },
-  { value: "technology", label: "Tecnologia" },
-  { value: "real-estate", label: "Imobiliário" },
-  { value: "health-care", label: "Saúde" },
   { value: "education", label: "Educação" },
-  { value: "financials", label: "Financeiro" },
   { value: "logistics", label: "Logística" },
   { value: "other", label: "Outros" },
 ];
@@ -36,11 +42,15 @@ export const defaultDealStages = [
 export const defaultDealPipelineStatuses = ["won"];
 
 export const defaultDealCategories = [
+  { value: "other", label: "Outro" },
+  { value: "copywriting", label: "Redação / Copywriting" },
+  { value: "print-project", label: "Projeto gráfico" },
+  { value: "ui-design", label: "Design de interface" },
+  { value: "website-design", label: "Criação de site" },
   { value: "product", label: "Produto" },
   { value: "service", label: "Serviço" },
   { value: "subscription", label: "Assinatura" },
   { value: "project", label: "Projeto" },
-  { value: "other", label: "Outro" },
 ];
 
 export const defaultNoteStatuses = [
