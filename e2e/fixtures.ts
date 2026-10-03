@@ -62,49 +62,99 @@ async function createSales({
   email,
   password,
   administrator = false,
+  organization_id,
 }: {
   first_name: string;
   last_name: string;
   email: string;
   password: string;
   administrator?: boolean;
+  organization_id?: number;
 }) {
-  // Preserve the original fixture semantics: multiple sales created in the
-  // same test belong to the same CRM organization.
-  const { data: existingSale } = await adminSupabase
-    .from("sales")
-    .select("organization_id")
-    .order("id", { ascending: true })
-    .limit(1)
-    .maybeSingle();
-
   const { data: userData, error: userError } =
     await adminSupabase.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
-      ...(existingSale?.organization_id
+      ...(organization_id
         ? {
             app_metadata: {
-              organization_id: existingSale.organization_id,
+              organization_id,
               organization_role: administrator ? "admin" : "member",
             },
           }
         : {
             user_metadata: {
-              organization_name: "E2E Organization",
+              organization_name: `E2E Organization ${crypto.randomUUID()}`,
             },
           }),
     });
 
-  if (userError) {
-    throw new Error(`Failed to create sales: ${userError.message}`);
+  if (userError || !userData.user) {
+    throw new Error(`Failed to create sales: ${userError?.message}`);
+  }
+
+  const { data: createdSale, error: saleLookupError } = await adminSupabase
+    .from("sales")
+    .select("*")
+    .eq("user_id", userData.user.id)
+    .single();
+
+  if (saleLookupError || !createdSale) {
+    throw new Error(
+      `Failed to resolve created sale: ${saleLookupError?.message}`,
+    );
+  }
+
+  // Local E2E projects can run browser projects concurrently. Never infer the
+  // tenant from another arbitrary sale: when a tenant is explicitly requested,
+  // reconcile the trigger-created records to that tenant deterministically.
+  if (
+    organization_id != null &&
+    createdSale.organization_id !== organization_id
+  ) {
+    const originalOrganizationId = createdSale.organization_id;
+
+    const { error: moveSaleError } = await adminSupabase
+      .from("sales")
+      .update({ organization_id })
+      .eq("id", createdSale.id);
+
+    if (moveSaleError) {
+      throw new Error(`Failed to move sale to organization: ${moveSaleError.message}`);
+    }
+
+    await adminSupabase
+      .from("organization_members")
+      .delete()
+      .eq("user_id", userData.user.id);
+
+    const { error: membershipInsertError } = await adminSupabase
+      .from("organization_members")
+      .insert({
+        organization_id,
+        user_id: userData.user.id,
+        role: administrator ? "admin" : "member",
+      });
+
+    if (membershipInsertError) {
+      throw new Error(
+        `Failed to move organization membership: ${membershipInsertError.message}`,
+      );
+    }
+
+    // Clean up the isolated organization created by the auth trigger when it
+    // is no longer referenced.
+    await adminSupabase
+      .from("organizations")
+      .delete()
+      .eq("id", originalOrganizationId);
   }
 
   const { data, error } = await adminSupabase
     .from("sales")
     .update({ first_name, last_name, administrator })
-    .eq("user_id", userData.user?.id)
+    .eq("user_id", userData.user.id)
     .select()
     .single();
 
@@ -115,7 +165,7 @@ async function createSales({
   await adminSupabase
     .from("organization_members")
     .update({ role: administrator ? "admin" : "member" })
-    .eq("user_id", userData.user?.id)
+    .eq("user_id", userData.user.id)
     .eq("organization_id", data.organization_id);
 
   return data;
