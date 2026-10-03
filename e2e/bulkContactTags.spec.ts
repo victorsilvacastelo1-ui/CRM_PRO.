@@ -32,12 +32,12 @@ test("user adds a tag to several contacts", async ({
 
   await page.goto("/");
 
-  await page.getByLabel("Email").fill("john@doe.com");
-  await page.getByLabel("Password").fill("password");
-  await page.getByRole("button", { name: "Sign in" }).click();
+  await page.getByLabel("E-mail").fill("john@doe.com");
+  await page.getByLabel("Senha").fill("password");
+  await page.getByRole("button", { name: "Entrar" }).click();
 
   await expect(page).toHaveTitle(/CRM Pro/);
-  await expect(page.getByRole("link", { name: "Contacts" })).toBeVisible();
+  await expect(page.getByRole("link", { name: "Contatos" })).toBeVisible();
 
   await menu.goToContacts();
   await expect(page.getByText("Ada Lovelace")).toBeVisible();
@@ -45,14 +45,14 @@ test("user adds a tag to several contacts", async ({
 
   const checkboxes = page.getByRole("checkbox");
   await checkboxes.nth(1).click();
-  await page.getByRole("button", { name: /select all/i }).click();
+  await page.getByRole("button", { name: /selecionar tudo/i }).click();
 
-  await page.getByRole("button", { name: /^Tag$/ }).click();
-  await page.getByRole("button", { name: "Create new tag" }).click();
-  await page.getByLabel("Tag name").fill("Prospect");
-  await page.getByRole("button", { name: "Save" }).click();
+  await page.getByRole("button", { name: /^Etiqueta$/ }).click();
+  await page.getByRole("button", { name: "Criar nova etiqueta" }).click();
+  await page.getByLabel("Nome da etiqueta").fill("Prospect");
+  await page.getByRole("button", { name: "Salvar" }).click();
 
-  await dismissToast("Tag added to 2 contacts");
+  await dismissToast("Etiqueta adicionada a 2 contatos");
 
   await expect(
     page.getByText("Grace Hopper").locator("xpath=ancestor::a[1]"),
