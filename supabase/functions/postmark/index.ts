@@ -134,7 +134,10 @@ Deno.serve(async (req) => {
     );
   }
 
-  const attachments = await extractAndUploadAttachments(Attachments);
+  const attachments = await extractAndUploadAttachments(
+    Attachments,
+    sales.organization_id,
+  );
 
   const failedContacts: string[] = [];
 
