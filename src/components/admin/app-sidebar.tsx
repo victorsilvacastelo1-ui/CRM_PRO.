@@ -21,7 +21,8 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
-import { House, List, Shell } from "lucide-react";
+import { House, List } from "lucide-react";
+import crmProIcon from "@/components/atomic-crm/root/logos/crm_pro_icon.png";
 
 /**
  * Navigation sidebar displaying menu items, allowing users to navigate between different sections of the application.
@@ -54,7 +55,7 @@ export function AppSidebar() {
               className="data-[slot=sidebar-menu-button]:!p-1.5"
             >
               <Link to="/">
-                <Shell className="!size-5" />
+                <img src={crmProIcon} alt="" className="!size-7 object-contain" />
                 <span className="text-base font-semibold">CRM Pro</span>
               </Link>
             </SidebarMenuButton>
