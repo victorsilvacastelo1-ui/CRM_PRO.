@@ -18,7 +18,7 @@ jobs:
 
       - name: Create source bundle
         run: |
-          tar --exclude=.git --exclude=node_modules -czf crm-pro-source.tar.gz .
+          git archive --format=tar.gz --output=crm-pro-source.tar.gz HEAD
 
       - name: Upload source bundle
         uses: actions/upload-artifact@v4
