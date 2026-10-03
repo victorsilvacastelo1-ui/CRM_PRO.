@@ -380,7 +380,7 @@ export const englishCrmMessages = {
         creating: "Creating...",
         initial_user_created: "Initial user successfully created",
       },
-      welcome_title: "Welcome to Atomic CRM",
+      welcome_title: "Bem-vindo ao CRM Pro",
     },
     common: {
       account_manager: "Account manager",
@@ -426,7 +426,7 @@ export const englishCrmMessages = {
       latest_notes: "My Latest Notes",
       latest_notes_added_ago: "added %{timeAgo}",
       stepper: {
-        install: "Install Atomic CRM",
+        install: "Configurar CRM Pro",
         progress: "%{step}/3 done",
         whats_next: "What's next?",
       },
