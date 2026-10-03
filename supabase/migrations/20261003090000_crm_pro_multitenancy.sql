@@ -626,9 +626,19 @@ drop policy if exists attachments_tenant_insert on storage.objects;
 drop policy if exists attachments_tenant_update on storage.objects;
 drop policy if exists attachments_tenant_delete on storage.objects;
 
-update storage.buckets
-set public = false
-where id = 'attachments';
+insert into storage.buckets(id, name, public)
+values ('attachments', 'attachments', false)
+on conflict (id) do update set public = false;
+
+-- Branding assets are intentionally public, but only members of the owning
+-- organization may create, replace or delete objects under its folder.
+insert into storage.buckets(id, name, public)
+values ('branding', 'branding', true)
+on conflict (id) do update set public = true;
+
+drop policy if exists branding_tenant_insert on storage.objects;
+drop policy if exists branding_tenant_update on storage.objects;
+drop policy if exists branding_tenant_delete on storage.objects;
 
 create policy attachments_tenant_select
   on storage.objects for select to authenticated
@@ -659,6 +669,31 @@ create policy attachments_tenant_delete
   on storage.objects for delete to authenticated
   using (
     bucket_id = 'attachments'
+    and (storage.foldername(name))[1] = public.current_organization_id()::text
+  );
+
+create policy branding_tenant_insert
+  on storage.objects for insert to authenticated
+  with check (
+    bucket_id = 'branding'
+    and (storage.foldername(name))[1] = public.current_organization_id()::text
+  );
+
+create policy branding_tenant_update
+  on storage.objects for update to authenticated
+  using (
+    bucket_id = 'branding'
+    and (storage.foldername(name))[1] = public.current_organization_id()::text
+  )
+  with check (
+    bucket_id = 'branding'
+    and (storage.foldername(name))[1] = public.current_organization_id()::text
+  );
+
+create policy branding_tenant_delete
+  on storage.objects for delete to authenticated
+  using (
+    bucket_id = 'branding'
     and (storage.foldername(name))[1] = public.current_organization_id()::text
   );
 
