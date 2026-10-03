@@ -312,11 +312,11 @@ async function createContact({
 
 const getMenuMethod = ({ page }: { page: Page; isMobile: boolean }) => ({
   goToDashboard: async () => {
-    await page.getByRole("link", { name: "Dashboard" }).click();
+    await page.getByRole("link", { name: "Painel" }).click();
     await page.waitForLoadState("networkidle");
   },
   goToContacts: async () => {
-    await page.getByRole("link", { name: "Contacts" }).click();
+    await page.getByRole("link", { name: "Contatos" }).click();
     await page.waitForLoadState("networkidle");
   },
 });
