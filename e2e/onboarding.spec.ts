@@ -9,46 +9,46 @@ test("user onboarding", async ({ page, isMobile, menu, dismissToast }) => {
   await expect(page.getByText("Crie sua conta no CRM Pro")).toBeVisible();
 
   await page.getByLabel("Nome da empresa").fill("Doe Serviços");
-  await page.getByLabel("First name").fill("John");
-  await page.getByLabel("Last name").fill("Doe");
-  await page.getByLabel("Email").fill("john@doe.com");
-  await page.getByLabel("Password").fill("password");
+  await page.getByLabel("Nome").fill("John");
+  await page.getByLabel("Sobrenome").fill("Doe");
+  await page.getByLabel("E-mail").fill("john@doe.com");
+  await page.getByLabel("Senha").fill("password");
   await page.getByRole("button", { name: "Criar conta" }).click();
 
-  await expect(page.getByText("What's next?")).toBeVisible();
-  await expect(page.getByText("1/3 done")).toBeVisible();
+  await expect(page.getByText("Próximo passo")).toBeVisible();
+  await expect(page.getByText("1/3 concluído")).toBeVisible();
   await expect(page.getByText("Configurar CRM Pro")).toBeVisible();
-  await expect(page.getByText("Add your first contact")).toBeVisible();
-  await expect(page.getByText("Add your first note")).toBeVisible();
-  await expect(page.getByRole("button", { name: "Import data" })).toBeVisible();
+  await expect(page.getByText("Adicionar primeiro contato")).toBeVisible();
+  await expect(page.getByText("Adicionar primeira nota")).toBeVisible();
+  await expect(page.getByRole("button", { name: "Importar dados" })).toBeVisible();
 
   await page
-    .getByRole(isMobile ? "button" : "link", { name: "Add contact" })
+    .getByRole(isMobile ? "button" : "link", { name: "Adicionar contato" })
     .click();
   await page.waitForLoadState("networkidle");
-  await page.getByLabel("She/Her").click();
-  await page.getByLabel("First name").fill("Jane");
-  await page.getByLabel("Last name").fill("Smith");
+  await page.getByLabel("Feminino").click();
+  await page.getByLabel("Nome").fill("Jane");
+  await page.getByLabel("Sobrenome").fill("Smith");
   await page.getByLabel("Title").fill("CEO");
-  await page.getByLabel("Company").click();
-  await page.getByPlaceholder("Search").fill("Smith Corp");
-  await page.getByText("Create Smith Corp").click();
+  await page.getByLabel("Empresa").click();
+  await page.getByPlaceholder("Pesquisar").fill("Smith Corp");
+  await page.getByText("Criar Smith Corp").click();
   await page
-    .getByRole("group", { name: "Email addresses" })
-    .getByRole("textbox", { name: "Email" })
+    .getByRole("group", { name: "E-mails" })
+    .getByRole("textbox", { name: "E-mail" })
     .fill("jane@smithcorp.com");
   await page
-    .getByRole("group", { name: "Email addresses" })
-    .getByRole("button", { name: "Add" })
+    .getByRole("group", { name: "E-mails" })
+    .getByRole("button", { name: "Adicionar" })
     .click();
 
   await page
-    .getByRole("group", { name: "Phone numbers" })
-    .getByRole("textbox", { name: "Phone number" })
+    .getByRole("group", { name: "Telefones" })
+    .getByRole("textbox", { name: "Telefone" })
     .fill("+1234567890");
   await page
-    .getByRole("group", { name: "Phone numbers" })
-    .getByRole("button", { name: "Add" })
+    .getByRole("group", { name: "Telefones" })
+    .getByRole("button", { name: "Adicionar" })
     .click();
 
   await page
@@ -56,40 +56,40 @@ test("user onboarding", async ({ page, isMobile, menu, dismissToast }) => {
     .fill("https://www.linkedin.com/in/jane-smith");
 
   await page
-    .getByLabel("Background info (bio, how you met, etc)")
+    .getByLabel("Contexto (biografia, como conheceu, observações etc.)")
     .fill("Met at a conference.");
 
-  await page.getByLabel("Has newsletter").check();
+  await page.getByLabel("Recebe newsletter").check();
 
-  await expect(page.getByLabel("Account manager *")).toHaveText("John Doe");
+  await expect(page.getByLabel("Responsável *")).toHaveText("John Doe");
 
-  await page.getByRole("button", { name: "Save" }).click();
+  await page.getByRole("button", { name: "Salvar" }).click();
 
-  await dismissToast("Element created");
+  await dismissToast("Item criado");
 
   await expect(page.locator(isMobile ? "h2" : "h5")).toHaveText("Jane Smith");
-  await expect(page.getByText("CEO at Smith Corp")).toBeVisible();
+  await expect(page.getByText("CEO em Smith Corp")).toBeVisible();
 
   await menu.goToDashboard();
   await page.waitForLoadState("networkidle");
 
-  await expect(page.getByText("2/3 done")).toBeVisible();
+  await expect(page.getByText("2/3 concluído")).toBeVisible();
 
   await page
-    .getByRole(isMobile ? "button" : "link", { name: "Add note" })
+    .getByRole(isMobile ? "button" : "link", { name: "Adicionar nota" })
     .click();
 
   await page.waitForLoadState("networkidle");
 
-  await page.getByPlaceholder("Add a note").fill("This is a note about Jane.");
+  await page.getByPlaceholder("Adicionar uma nota").fill("This is a note about Jane.");
   await page
-    .getByRole("button", { name: isMobile ? "Save" : "Add this note" })
+    .getByRole("button", { name: isMobile ? "Salvar" : "Adicionar esta nota" })
     .click();
 
-  await dismissToast("Note added");
+  await dismissToast("Nota adicionada");
 
   await expect(
-    page.getByText(isMobile ? "Me" : "You added a note", { exact: false }),
+    page.getByText(isMobile ? "Eu" : "Você adicionou uma nota", { exact: false }),
   ).toBeVisible();
   await expect(page.getByText("This is a note about Jane.")).toBeVisible();
 
@@ -97,16 +97,16 @@ test("user onboarding", async ({ page, isMobile, menu, dismissToast }) => {
 
   await page.waitForLoadState("networkidle");
 
-  await expect(page.getByText("Latest Activity")).toBeVisible();
+  await expect(page.getByText("Atividades recentes")).toBeVisible();
   await expect(
-    page.getByText("Latest Activity").locator("xpath=../.."),
-  ).toHaveText(/You added company Smith Corp today at/);
+    page.getByText("Atividades recentes").locator("xpath=../.."),
+  ).toHaveText(/Você adicionou a empresa Smith Corp/);
 
   await expect(
-    page.getByText("Latest Activity").locator("xpath=../.."),
-  ).toHaveText(/You added Jane Smith to Smith Corp today at/);
+    page.getByText("Atividades recentes").locator("xpath=../.."),
+  ).toHaveText(/Você adicionou Jane Smith.*Smith Corp/);
 
   await expect(
-    page.getByText("Latest Activity").locator("xpath=../.."),
-  ).toHaveText(/You added a note about Jane Smith today at/);
+    page.getByText("Atividades recentes").locator("xpath=../.."),
+  ).toHaveText(/Você adicionou uma nota sobre Jane Smith/);
 });
