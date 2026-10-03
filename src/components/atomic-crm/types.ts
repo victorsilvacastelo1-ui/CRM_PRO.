@@ -14,6 +14,7 @@ export type SignUpData = {
   password: string;
   first_name: string;
   last_name: string;
+  organization_name: string;
 };
 
 export type SalesFormData = {
@@ -28,6 +29,7 @@ export type SalesFormData = {
 };
 
 export type Sale = {
+  organization_id: number;
   first_name: string;
   last_name: string;
   administrator: boolean;
