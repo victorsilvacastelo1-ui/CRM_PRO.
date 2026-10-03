@@ -66,7 +66,7 @@ export const DealsPipeline = () => {
           isPending={isPending}
           primaryText={(deal) => deal.name}
           secondaryText={(deal) =>
-            `${deal.amount.toLocaleString("en-US", {
+            `${deal.amount.toLocaleString("pt-BR", {
               notation: "compact",
               style: "currency",
               currency,
