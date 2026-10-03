@@ -138,14 +138,22 @@ export const LoginPage = (props: { redirectTo?: string }) => {
               </SSOAuthButton>
             ) : null}
             {disableEmailPasswordAuthentication ? null : (
-              <Link
-                to={"/forgot-password"}
-                className="block text-sm text-center hover:underline"
-              >
-                {translate("ra-supabase.auth.forgot_password", {
-                  _: "Forgot password?",
-                })}
-              </Link>
+              <>
+                <Link
+                  to={"/forgot-password"}
+                  className="block text-sm text-center hover:underline"
+                >
+                  {translate("ra-supabase.auth.forgot_password", {
+                    _: "Esqueci minha senha",
+                  })}
+                </Link>
+                <Link
+                  to={"/sign-up"}
+                  className="block text-sm text-center font-medium hover:underline"
+                >
+                  Criar conta no CRM Pro
+                </Link>
+              </>
             )}
           </div>
         </div>

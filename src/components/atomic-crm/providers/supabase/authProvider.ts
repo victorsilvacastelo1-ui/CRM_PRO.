@@ -69,7 +69,7 @@ const getSale = async () => {
 
   const { data: dataSale, error: errorSale } = await getSupabaseClient()
     .from("sales")
-    .select("id, first_name, last_name, avatar, administrator")
+    .select("id, organization_id, first_name, last_name, avatar, administrator, disabled")
     .match({ user_id: dataSession?.session?.user.id })
     .single();
 
@@ -109,49 +109,38 @@ export const getAuthProvider = (): AuthProvider => {
       return baseAuthProvider.logout(params);
     },
     checkAuth: async (params) => {
-      // Users are on the set-password page, nothing to do
+      // Password recovery and public sign-up routes must remain accessible.
       if (
         window.location.pathname === "/set-password" ||
-        window.location.hash.includes("#/set-password")
-      ) {
-        return;
-      }
-      // Users are on the forgot-password page, nothing to do
-      if (
+        window.location.hash.includes("#/set-password") ||
         window.location.pathname === "/forgot-password" ||
-        window.location.hash.includes("#/forgot-password")
-      ) {
-        return;
-      }
-      // Users are on the sign-up page, nothing to do
-      if (
+        window.location.hash.includes("#/forgot-password") ||
         window.location.pathname === "/sign-up" ||
         window.location.hash.includes("#/sign-up")
       ) {
         return;
       }
 
-      const isInitialized = await getIsInitialized();
+      await baseAuthProvider.checkAuth(params);
 
-      if (!isInitialized) {
+      // A valid auth session is not enough in the SaaS model: the user must
+      // also belong to an organization and have a CRM profile.
+      const sale = await getSale();
+      if (sale == null || sale.organization_id == null || sale.disabled) {
         await getSupabaseClient().auth.signOut();
+        clearCache();
         throw {
-          redirectTo: "/sign-up",
-          message: false,
+          redirectTo: "/login",
+          message: "Conta sem acesso a uma organização ativa.",
         };
       }
-
-      return baseAuthProvider.checkAuth(params);
     },
     canAccess: async (params) => {
-      const isInitialized = await getIsInitialized();
-      if (!isInitialized) return false;
-
-      // Get the current user
       const sale = await getSale();
-      if (sale == null) return false;
+      if (sale == null || sale.organization_id == null || sale.disabled) {
+        return false;
+      }
 
-      // Compute access rights from the sale role
       const role = sale.administrator ? "admin" : "user";
       return canAccess(role, params);
     },

@@ -1,6 +1,10 @@
 import "jsr:@supabase/functions-js/edge-runtime.d.ts";
-import { AuthMiddleware } from "../_shared/authentication.ts";
+import {
+  AuthMiddleware,
+  UserMiddleware,
+} from "../_shared/authentication.ts";
 import { supabaseAdmin } from "../_shared/supabaseAdmin.ts";
+import { getUserSale } from "../_shared/getUserSale.ts";
 
 const ATTACHMENTS_BUCKET =
   Deno.env.get("VITE_ATTACHMENTS_BUCKET") || "attachments";
@@ -21,13 +25,21 @@ type WebhookPayload = {
   record?: NoteRecord | null;
 };
 
-const deleteNoteAttachments = async (req: Request) => {
+const deleteNoteAttachments = async (
+  req: Request,
+  organizationId: number,
+) => {
   if (req.method !== "POST") {
     return jsonResponse({ error: "Method Not Allowed" }, 405);
   }
 
   const payload = (await req.json()) as WebhookPayload;
   const paths = getPathsToDelete(payload);
+  const tenantPrefix = `${organizationId}/`;
+
+  if (paths.some((path) => !path.startsWith(tenantPrefix))) {
+    return jsonResponse({ error: "Forbidden attachment path" }, 403);
+  }
 
   if (paths.length === 0) {
     return jsonResponse({
@@ -55,7 +67,20 @@ const deleteNoteAttachments = async (req: Request) => {
 };
 
 Deno.serve(async (req: Request) =>
-  AuthMiddleware(req, async (req: Request) => deleteNoteAttachments(req)),
+  AuthMiddleware(req, async (req: Request) =>
+    UserMiddleware(req, async (req, user) => {
+      if (!user) {
+        return jsonResponse({ error: "Unauthorized" }, 401);
+      }
+
+      const sale = await getUserSale(user);
+      if (!sale?.organization_id) {
+        return jsonResponse({ error: "Organization not found" }, 403);
+      }
+
+      return deleteNoteAttachments(req, sale.organization_id);
+    }),
+  ),
 );
 
 const getPathsToDelete = (payload: WebhookPayload): string[] => {

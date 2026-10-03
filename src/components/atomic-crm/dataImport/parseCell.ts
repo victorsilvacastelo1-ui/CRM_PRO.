@@ -55,15 +55,44 @@ export const toIsoDate = (cell: ImportCell): string | undefined => {
  * stored value ("proposal-sent") or the label users see ("Proposal Sent").
  * Returns undefined when the cell is empty or matches no option.
  */
+const legacyEnglishLabels: Record<string, string> = {
+  "communication-services": "communication services",
+  "consumer-discretionary": "consumer discretionary",
+  "consumer-staples": "consumer staples",
+  energy: "energy",
+  financials: "financials",
+  "health-care": "health care",
+  industrials: "industrials",
+  "information-technology": "information technology",
+  materials: "materials",
+  "real-estate": "real estate",
+  utilities: "utilities",
+  opportunity: "opportunity",
+  "proposal-sent": "proposal sent",
+  "in-negociation": "in negotiation",
+  won: "won",
+  lost: "lost",
+  delayed: "delayed",
+  other: "other",
+  copywriting: "copywriting",
+  "print-project": "print project",
+  "ui-design": "ui design",
+  "website-design": "website design",
+};
+
 export const toConfiguredValue = (
   cell: ImportCell,
   options: LabeledValue[],
 ): string | undefined => {
   const text = toText(cell)?.toLowerCase();
   if (text === undefined) return undefined;
-  return options.find(
-    (option) =>
-      option.value.toLowerCase() === text ||
-      option.label.toLowerCase() === text,
-  )?.value;
+
+  return options.find((option) => {
+    const value = option.value.toLowerCase();
+    return (
+      value === text ||
+      option.label.toLowerCase() === text ||
+      legacyEnglishLabels[value] === text
+    );
+  })?.value;
 };

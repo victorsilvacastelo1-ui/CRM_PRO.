@@ -10,27 +10,46 @@ import {
   normalizeSecondaryEmails,
 } from "./secondaryEmails.ts";
 
-async function updateSaleDisabled(user_id: string, disabled: boolean) {
+async function updateSaleDisabled(
+  user_id: string,
+  disabled: boolean,
+  organization_id: number,
+) {
   return await supabaseAdmin
     .from("sales")
     .update({ disabled: disabled ?? false })
-    .eq("user_id", user_id);
+    .eq("user_id", user_id)
+    .eq("organization_id", organization_id);
 }
 
 async function updateSaleAdministrator(
   user_id: string,
   administrator: boolean,
+  organization_id: number,
 ) {
   const { data: sales, error: salesError } = await supabaseAdmin
     .from("sales")
     .update({ administrator })
     .eq("user_id", user_id)
+    .eq("organization_id", organization_id)
     .select("*");
 
   if (!sales?.length || salesError) {
     console.error("Error updating user:", salesError);
     throw salesError ?? new Error("Failed to update sale");
   }
+
+  const { error: membershipError } = await supabaseAdmin
+    .from("organization_members")
+    .update({ role: administrator ? "admin" : "member" })
+    .eq("user_id", user_id)
+    .eq("organization_id", organization_id);
+
+  if (membershipError) {
+    console.error("Error updating organization membership:", membershipError);
+    throw membershipError;
+  }
+
   return sales.at(0);
 }
 
@@ -43,11 +62,29 @@ async function createSale(
     last_name: string;
     disabled: boolean;
     administrator: boolean;
+    organization_id: number;
   },
 ) {
+  const { error: membershipError } = await supabaseAdmin
+    .from("organization_members")
+    .upsert(
+      {
+        organization_id: data.organization_id,
+        user_id,
+        role: data.administrator ? "admin" : "member",
+      },
+      { onConflict: "user_id" },
+    );
+
+  if (membershipError) {
+    console.error("Error creating organization membership:", membershipError);
+    throw membershipError;
+  }
+
+  const { password: _password, ...saleData } = data;
   const { data: sales, error: salesError } = await supabaseAdmin
     .from("sales")
-    .insert({ ...data, user_id })
+    .insert({ ...saleData, user_id })
     .select("*");
 
   if (!sales?.length || salesError) {
@@ -100,11 +137,13 @@ async function findEmailUsedByAnotherSale(
 async function updateSaleSecondaryEmails(
   user_id: string,
   secondary_emails: string[],
+  organization_id: number,
 ) {
   const { error: salesError } = await supabaseAdmin
     .from("sales")
     .update({ secondary_emails })
-    .eq("user_id", user_id);
+    .eq("user_id", user_id)
+    .eq("organization_id", organization_id);
 
   if (salesError) {
     console.error("Error updating user:", salesError);
@@ -112,11 +151,16 @@ async function updateSaleSecondaryEmails(
   }
 }
 
-async function updateSaleAvatar(user_id: string, avatar: string) {
+async function updateSaleAvatar(
+  user_id: string,
+  avatar: string,
+  organization_id: number,
+) {
   const { data: sales, error: salesError } = await supabaseAdmin
     .from("sales")
     .update({ avatar })
     .eq("user_id", user_id)
+    .eq("organization_id", organization_id)
     .select("*");
 
   if (!sales?.length || salesError) {
@@ -149,6 +193,10 @@ async function inviteUser(req: Request, currentUserSale: any) {
     email,
     password,
     user_metadata: { first_name, last_name },
+    app_metadata: {
+      organization_id: currentUserSale.organization_id,
+      organization_role: administrator ? "admin" : "member",
+    },
   });
 
   let user = data?.user;
@@ -192,6 +240,7 @@ async function inviteUser(req: Request, currentUserSale: any) {
         last_name,
         disabled,
         administrator,
+        organization_id: currentUserSale.organization_id,
       });
 
       return new Response(
@@ -232,8 +281,16 @@ async function inviteUser(req: Request, currentUserSale: any) {
   }
 
   try {
-    await updateSaleDisabled(user.id, disabled);
-    const sale = await updateSaleAdministrator(user.id, administrator);
+    await updateSaleDisabled(
+      user.id,
+      disabled,
+      currentUserSale.organization_id,
+    );
+    const sale = await updateSaleAdministrator(
+      user.id,
+      administrator,
+      currentUserSale.organization_id,
+    );
 
     return new Response(
       JSON.stringify({
@@ -264,6 +321,7 @@ async function patchUser(req: Request, currentUserSale: any) {
     .from("sales")
     .select("*")
     .eq("id", sales_id)
+    .eq("organization_id", currentUserSale.organization_id)
     .single();
 
   if (!sale) {
@@ -355,11 +413,19 @@ async function patchUser(req: Request, currentUserSale: any) {
 
   try {
     if (avatar) {
-      await updateSaleAvatar(data.user.id, avatar);
+      await updateSaleAvatar(
+        data.user.id,
+        avatar,
+        currentUserSale.organization_id,
+      );
     }
 
     if (normalizedSecondaryEmails) {
-      await updateSaleSecondaryEmails(data.user.id, normalizedSecondaryEmails);
+      await updateSaleSecondaryEmails(
+        data.user.id,
+        normalizedSecondaryEmails,
+        currentUserSale.organization_id,
+      );
     }
   } catch (e) {
     console.error("Error patching sale:", e);
@@ -372,6 +438,7 @@ async function patchUser(req: Request, currentUserSale: any) {
       .from("sales")
       .select("*")
       .eq("id", sales_id)
+      .eq("organization_id", currentUserSale.organization_id)
       .single();
     return new Response(
       JSON.stringify({
@@ -387,8 +454,16 @@ async function patchUser(req: Request, currentUserSale: any) {
   }
 
   try {
-    await updateSaleDisabled(data.user.id, disabled);
-    const sale = await updateSaleAdministrator(data.user.id, administrator);
+    await updateSaleDisabled(
+      data.user.id,
+      disabled,
+      currentUserSale.organization_id,
+    );
+    const sale = await updateSaleAdministrator(
+      data.user.id,
+      administrator,
+      currentUserSale.organization_id,
+    );
     return new Response(
       JSON.stringify({
         data: sale,

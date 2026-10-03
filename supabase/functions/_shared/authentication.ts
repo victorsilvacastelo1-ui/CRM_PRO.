@@ -62,9 +62,16 @@ export const UserMiddleware = async (
 
   try {
     const authHeader = req.headers.get("Authorization")!;
+    const publishableKeys = Deno.env.get("SUPABASE_PUBLISHABLE_KEYS");
+    const publishableKey = publishableKeys
+      ? JSON.parse(publishableKeys)?.default
+      : Deno.env.get("SB_PUBLISHABLE_KEY") ??
+        Deno.env.get("SUPABASE_ANON_KEY") ??
+        "";
+
     const localClient = createClient(
       Deno.env.get("SUPABASE_URL") ?? "",
-      Deno.env.get("SB_PUBLISHABLE_KEY") ?? "",
+      publishableKey,
       { global: { headers: { Authorization: authHeader } } },
     );
 

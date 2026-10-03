@@ -15,6 +15,7 @@ test.describe("admin filtering by account manager", () => {
       first_name: "Marie",
       last_name: "Curie",
       password: "password",
+      organization_id: admin.organization_id,
     });
 
     const company = await createCompany({

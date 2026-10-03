@@ -7,11 +7,13 @@ export const getOrCreateCompanyFromDomain = async ({
   salesId,
   companyName,
   website,
+  organizationId,
 }: {
   domain: string;
   salesId: number;
   companyName: string;
   website: string;
+  organizationId: number;
 }) => {
   if (MAIL_PROVIDERS.includes(domain)) {
     // We don't want to create companies for generic mail providers, as they are not really companies and it would pollute the database with useless entries.
@@ -23,6 +25,7 @@ export const getOrCreateCompanyFromDomain = async ({
     await supabaseAdmin
       .from("companies")
       .select("*")
+      .eq("organization_id", organizationId)
       .or(`website.eq.${website},name.eq.${companyName},name.eq.${domain}`)
       .maybeSingle();
   if (fetchCompanyError) {
@@ -37,7 +40,12 @@ export const getOrCreateCompanyFromDomain = async ({
 
   const { data: newCompanies, error: createCompanyError } = await supabaseAdmin
     .from("companies")
-    .insert({ name: companyName, sales_id: salesId, website })
+    .insert({
+      name: companyName,
+      sales_id: salesId,
+      website,
+      organization_id: organizationId,
+    })
     .select();
   if (createCompanyError) {
     throw new Error(
@@ -55,6 +63,7 @@ export const getOrCreateContactFromEmailInfo = async ({
   domain,
   companyName,
   website,
+  organizationId,
 }: {
   email: string;
   firstName: string;
@@ -63,12 +72,14 @@ export const getOrCreateContactFromEmailInfo = async ({
   domain: string;
   companyName: string;
   website: string;
+  organizationId: number;
 }) => {
   // Check if the contact already exists
   const { data: existingContact, error: fetchContactError } =
     await supabaseAdmin
       .from("contacts")
       .select("*")
+      .eq("organization_id", organizationId)
       .contains("email_jsonb", JSON.stringify([{ email }]))
       .maybeSingle();
   if (fetchContactError) {
@@ -86,6 +97,7 @@ export const getOrCreateContactFromEmailInfo = async ({
     salesId,
     companyName,
     website,
+    organizationId,
   });
 
   // Create the contact
@@ -100,6 +112,7 @@ export const getOrCreateContactFromEmailInfo = async ({
       first_seen: new Date(),
       last_seen: new Date(),
       tags: [],
+      organization_id: organizationId,
     })
     .select();
   if (createContactError || !newContacts[0]) {
@@ -162,7 +175,7 @@ export const addNoteToContact = async ({
   companyName,
   website,
 }: {
-  sales: { id: number };
+  sales: { id: number; organization_id: number };
   salesEmail: string;
   email: string;
   domain: string;
@@ -181,6 +194,7 @@ export const addNoteToContact = async ({
     domain,
     companyName,
     website,
+    organizationId: sales.organization_id,
   })
     .then((contact) => ({
       contact,
@@ -214,6 +228,7 @@ export const addNoteToContact = async ({
       text: noteContent,
       sales_id: sales.id,
       attachments,
+      organization_id: sales.organization_id,
     });
   if (createNoteError) {
     return new Response(
@@ -225,5 +240,6 @@ export const addNoteToContact = async ({
   await supabaseAdmin
     .from("contacts")
     .update({ last_seen: new Date() })
-    .eq("id", contact.id);
+    .eq("id", contact.id)
+    .eq("organization_id", sales.organization_id);
 };

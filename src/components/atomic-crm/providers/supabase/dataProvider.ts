@@ -16,7 +16,10 @@ import type {
   SignUpData,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
-import { ATTACHMENTS_BUCKET } from "../commons/attachments";
+import {
+  ATTACHMENTS_BUCKET,
+  BRANDING_BUCKET,
+} from "../commons/attachments";
 import { getIsInitialized } from "./authProvider";
 import { getSupabaseClient } from "./supabase";
 
@@ -44,24 +47,54 @@ const processCompanyLogo = async (params: any) => {
   };
 };
 
+const refreshStoredFile = async (file: any) => {
+  if (!file?.path) return file;
+
+  const { data, error } = await getSupabaseClient()
+    .storage.from(ATTACHMENTS_BUCKET)
+    .createSignedUrl(file.path, 60 * 60);
+
+  if (error || !data?.signedUrl) return file;
+  return { ...file, src: data.signedUrl };
+};
+
+const hydrateRecordFiles = async (resource: string, record: any) => {
+  if (!record) return record;
+
+  if (resource === "companies" && record.logo) {
+    return { ...record, logo: await refreshStoredFile(record.logo) };
+  }
+
+  if (resource === "sales" && record.avatar) {
+    return { ...record, avatar: await refreshStoredFile(record.avatar) };
+  }
+
+  if (
+    (resource === "contact_notes" || resource === "deal_notes") &&
+    Array.isArray(record.attachments)
+  ) {
+    return {
+      ...record,
+      attachments: await Promise.all(
+        record.attachments.map((file: any) => refreshStoredFile(file)),
+      ),
+    };
+  }
+
+  return record;
+};
+
 const getDataProviderWithCustomMethods = () => {
   const baseDataProvider = getBaseDataProvider();
 
   return {
     ...baseDataProvider,
     async getList(resource: string, params: GetListParams) {
-      if (resource === "companies") {
-        return baseDataProvider.getList("companies_summary", params);
-      }
-      if (resource === "contacts") {
-        return baseDataProvider.getList("contacts_summary", params);
-      }
       if (resource === "activity_log") {
         const { data, total } = await baseDataProvider.getList(
           "activity_log",
           params,
         );
-        // Rename snake_case view columns to camelCase to match Activity type
         return {
           data: data.map((row: any) => ({
             ...row,
@@ -74,20 +107,41 @@ const getDataProviderWithCustomMethods = () => {
         };
       }
 
-      return baseDataProvider.getList(resource, params);
+      const result =
+        resource === "companies"
+          ? await baseDataProvider.getList("companies_summary", params)
+          : resource === "contacts"
+            ? await baseDataProvider.getList("contacts_summary", params)
+            : await baseDataProvider.getList(resource, params);
+
+      return {
+        ...result,
+        data: await Promise.all(
+          result.data.map((row: any) => hydrateRecordFiles(resource, row)),
+        ),
+      };
     },
     async getOne(resource: string, params: any) {
-      if (resource === "companies") {
-        return baseDataProvider.getOne("companies_summary", params);
-      }
-      if (resource === "contacts") {
-        return baseDataProvider.getOne("contacts_summary", params);
-      }
+      const result =
+        resource === "companies"
+          ? await baseDataProvider.getOne("companies_summary", params)
+          : resource === "contacts"
+            ? await baseDataProvider.getOne("contacts_summary", params)
+            : await baseDataProvider.getOne(resource, params);
 
-      return baseDataProvider.getOne(resource, params);
+      return {
+        ...result,
+        data: await hydrateRecordFiles(resource, result.data),
+      };
     },
 
-    async signUp({ email, password, first_name, last_name }: SignUpData) {
+    async signUp({
+      email,
+      password,
+      first_name,
+      last_name,
+      organization_name,
+    }: SignUpData) {
       const response = await getSupabaseClient().auth.signUp({
         email,
         password,
@@ -95,6 +149,7 @@ const getDataProviderWithCustomMethods = () => {
           data: {
             first_name,
             last_name,
+            organization_name,
           },
         },
       });
@@ -274,8 +329,7 @@ export type CrmDataProvider = ReturnType<
 const processConfigLogo = async (logo: any): Promise<string> => {
   if (typeof logo === "string") return logo;
   if (logo?.rawFile instanceof File) {
-    await uploadToBucket(logo);
-    return logo.src;
+    return uploadToBrandingBucket(logo);
   }
   return logo?.src ?? "";
 };
@@ -426,6 +480,40 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
   };
 };
 
+const getCurrentOrganizationId = async (): Promise<number> => {
+  const { data, error } = await getSupabaseClient().rpc(
+    "current_organization_id",
+  );
+
+  if (error || data == null) {
+    throw error ?? new Error("User is not associated with an organization");
+  }
+
+  return Number(data);
+};
+
+const uploadToBrandingBucket = async (fi: RAFile): Promise<string> => {
+  const file = fi.rawFile;
+  const fileParts = file.name.split(".");
+  const fileExt = fileParts.length > 1 ? `.${fileParts.pop()}` : "";
+  const organizationId = await getCurrentOrganizationId();
+  const filePath = `${organizationId}/${crypto.randomUUID()}${fileExt}`;
+
+  const { error } = await getSupabaseClient()
+    .storage.from(BRANDING_BUCKET)
+    .upload(filePath, file, { upsert: false });
+
+  if (error) {
+    throw error;
+  }
+
+  const { data } = getSupabaseClient()
+    .storage.from(BRANDING_BUCKET)
+    .getPublicUrl(filePath);
+
+  return data.publicUrl;
+};
+
 const uploadToBucket = async (fi: RAFile) => {
   if (!fi.src.startsWith("blob:") && !fi.src.startsWith("data:")) {
     // Sign URL check if path exists in the bucket
@@ -462,8 +550,9 @@ const uploadToBucket = async (fi: RAFile) => {
   const file = fi.rawFile;
   const fileParts = file.name.split(".");
   const fileExt = fileParts.length > 1 ? `.${file.name.split(".").pop()}` : "";
-  const fileName = `${Math.random()}${fileExt}`;
-  const filePath = `${fileName}`;
+  const fileName = `${crypto.randomUUID()}${fileExt}`;
+  const organizationId = await getCurrentOrganizationId();
+  const filePath = `${organizationId}/${fileName}`;
   const { error: uploadError } = await getSupabaseClient()
     .storage.from(ATTACHMENTS_BUCKET)
     .upload(filePath, dataContent);
@@ -473,12 +562,16 @@ const uploadToBucket = async (fi: RAFile) => {
     throw new Error("Failed to upload attachment");
   }
 
-  const { data } = getSupabaseClient()
+  const { data: signedData, error: signedError } = await getSupabaseClient()
     .storage.from(ATTACHMENTS_BUCKET)
-    .getPublicUrl(filePath);
+    .createSignedUrl(filePath, 60 * 60);
+
+  if (signedError || !signedData?.signedUrl) {
+    throw signedError ?? new Error("Failed to sign attachment URL");
+  }
 
   fi.path = filePath;
-  fi.src = data.publicUrl;
+  fi.src = signedData.signedUrl;
 
   // save MIME type
   const mimeType = file.type;

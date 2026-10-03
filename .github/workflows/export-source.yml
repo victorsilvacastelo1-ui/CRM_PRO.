@@ -1,0 +1,22 @@
+name: Export CRM Pro source
+
+on:
+  push:
+    branches:
+      - develop
+  workflow_dispatch:
+
+jobs:
+  export-source:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v4
+
+      - name: Upload source artifact
+        uses: actions/upload-artifact@v4
+        with:
+          name: crm-pro-source
+          path: .
+          include-hidden-files: true
+          if-no-files-found: error
