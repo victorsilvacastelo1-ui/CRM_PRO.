@@ -26,6 +26,7 @@ export const ptBrRaMessages: TranslationMessages = {
       reset: "Redefinir",
       save: "Salvar",
       search: "Pesquisar",
+      clear_search: "Limpar pesquisa",
       search_columns: "Pesquisar colunas",
       select_all: "Selecionar tudo",
       select_all_button: "Selecionar tudo",
