@@ -124,7 +124,7 @@ export const SettingsPageMobile = () => {
               onClick={() => logout()}
             >
               <LogOut className="size-5 mr-3" />
-              <Translate i18nKey="ra.auth.logout">Log out</Translate>
+              <Translate i18nKey="ra.auth.logout">Sair</Translate>
             </Button>
           </div>
         </div>
