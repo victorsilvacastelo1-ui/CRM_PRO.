@@ -29,7 +29,8 @@ export type SalesFormData = {
 };
 
 export type Sale = {
-  organization_id: number;
+  // Optional in demo/FakeRest data; required by the Supabase SaaS schema.
+  organization_id?: number;
   first_name: string;
   last_name: string;
   administrator: boolean;
