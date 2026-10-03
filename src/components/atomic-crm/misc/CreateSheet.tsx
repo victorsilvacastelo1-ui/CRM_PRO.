@@ -83,7 +83,7 @@ export const CreateSheet = ({
   children,
   open,
   onOpenChange,
-  title = "Create",
+  title = "Criar",
   redirect: redirectTo = "show",
   mutationOptions,
   defaultValues,
