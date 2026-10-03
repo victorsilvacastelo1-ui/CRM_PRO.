@@ -257,7 +257,7 @@ export const AutocompleteInput = (
               {/* We handle the filtering ourselves */}
               <Command shouldFilter={!isFromReference}>
                 <CommandInput
-                  placeholder="Search..."
+                  placeholder={translate("ra.action.search", { _: "Pesquisar..." })}
                   value={filterValue}
                   onValueChange={(filter) => {
                     setFilterValue(filter);
@@ -272,7 +272,7 @@ export const AutocompleteInput = (
                   }}
                 />
                 <CommandList ref={listRef}>
-                  <CommandEmpty>No matching item found.</CommandEmpty>
+                  <CommandEmpty>{translate("ra.navigation.no_results", { name: "item", _: "Nenhum item encontrado." })}</CommandEmpty>
                   <CommandGroup>
                     {finalChoices.map((choice) => {
                       const isCreateItem =
