@@ -1,4 +1,5 @@
 import { formatDistance } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { FileText } from "lucide-react";
 import { useGetIdentity, useGetList, useTranslate } from "ra-core";
 import { ReferenceField } from "@/components/admin/reference-field";
@@ -75,6 +76,7 @@ export const LatestNotes = () => {
                 {translate("crm.dashboard.latest_notes_added_ago", {
                   timeAgo: formatDistance(note.date, new Date(), {
                     addSuffix: true,
+                    locale: ptBR,
                   }),
                 })}
               </div>
@@ -95,7 +97,7 @@ const Deal = ({ note }: any) => {
   const translate = useTranslate();
   return (
     <>
-      {translate("resources.deals.forcedCaseName")}{" "}
+      {translate("resources.deals.name", { smart_count: 1 })}{" "}
       <ReferenceField
         record={note}
         source="deal_id"
