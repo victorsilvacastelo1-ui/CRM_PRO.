@@ -1,67 +1,65 @@
 import type { ConfigurationContextValue } from "./ConfigurationContext";
-// Import the logos as module assets so Vite resolves their URL relative to the
-// JS chunk (import.meta.url), not the current route. A plain "./logos/..." path
-// breaks on nested routes like /oauth/consent and under a deployment sub-path.
+// Keep upstream logo assets until a dedicated CRM Pro brand kit is added.
 import darkModeLogo from "./logos/logo_atomic_crm_dark.svg";
 import lightModeLogo from "./logos/logo_atomic_crm_light.svg";
 
 export const defaultDarkModeLogo = darkModeLogo;
 export const defaultLightModeLogo = lightModeLogo;
 
-export const defaultCurrency = "USD";
+export const defaultCurrency = "BRL";
 
-export const defaultTitle = "Atomic CRM";
+export const defaultTitle = "CRM Pro";
 
 export const defaultCompanySectors = [
-  { value: "communication-services", label: "Communication Services" },
-  { value: "consumer-discretionary", label: "Consumer Discretionary" },
-  { value: "consumer-staples", label: "Consumer Staples" },
-  { value: "energy", label: "Energy" },
-  { value: "financials", label: "Financials" },
-  { value: "health-care", label: "Health Care" },
-  { value: "industrials", label: "Industrials" },
-  { value: "information-technology", label: "Information Technology" },
-  { value: "materials", label: "Materials" },
-  { value: "real-estate", label: "Real Estate" },
-  { value: "utilities", label: "Utilities" },
+  { value: "construction", label: "Construção" },
+  { value: "commerce", label: "Comércio" },
+  { value: "services", label: "Serviços" },
+  { value: "industry", label: "Indústria" },
+  { value: "technology", label: "Tecnologia" },
+  { value: "real-estate", label: "Imobiliário" },
+  { value: "health-care", label: "Saúde" },
+  { value: "education", label: "Educação" },
+  { value: "financials", label: "Financeiro" },
+  { value: "logistics", label: "Logística" },
+  { value: "other", label: "Outros" },
 ];
 
 export const defaultDealStages = [
-  { value: "opportunity", label: "Opportunity" },
-  { value: "proposal-sent", label: "Proposal Sent" },
-  { value: "in-negociation", label: "In Negotiation" },
-  { value: "won", label: "Won" },
-  { value: "lost", label: "Lost" },
-  { value: "delayed", label: "Delayed" },
+  { value: "opportunity", label: "Oportunidade" },
+  { value: "proposal-sent", label: "Proposta enviada" },
+  { value: "in-negociation", label: "Em negociação" },
+  { value: "won", label: "Ganho" },
+  { value: "lost", label: "Perdido" },
+  { value: "delayed", label: "Adiado" },
 ];
 
 export const defaultDealPipelineStatuses = ["won"];
 
 export const defaultDealCategories = [
-  { value: "other", label: "Other" },
-  { value: "copywriting", label: "Copywriting" },
-  { value: "print-project", label: "Print project" },
-  { value: "ui-design", label: "UI Design" },
-  { value: "website-design", label: "Website design" },
+  { value: "product", label: "Produto" },
+  { value: "service", label: "Serviço" },
+  { value: "subscription", label: "Assinatura" },
+  { value: "project", label: "Projeto" },
+  { value: "other", label: "Outro" },
 ];
 
 export const defaultNoteStatuses = [
-  { value: "cold", label: "Cold", color: "#7dbde8" },
-  { value: "warm", label: "Warm", color: "#e8cb7d" },
-  { value: "hot", label: "Hot", color: "#e88b7d" },
-  { value: "in-contract", label: "In Contract", color: "#a4e87d" },
+  { value: "cold", label: "Frio", color: "#7dbde8" },
+  { value: "warm", label: "Morno", color: "#e8cb7d" },
+  { value: "hot", label: "Quente", color: "#e88b7d" },
+  { value: "in-contract", label: "Em contrato", color: "#a4e87d" },
 ];
 
 export const defaultTaskTypes = [
-  { value: "none", label: "None" },
-  { value: "email", label: "Email" },
-  { value: "demo", label: "Demo" },
-  { value: "lunch", label: "Lunch" },
-  { value: "meeting", label: "Meeting" },
-  { value: "follow-up", label: "Follow-up" },
-  { value: "thank-you", label: "Thank you" },
-  { value: "ship", label: "Ship" },
-  { value: "call", label: "Call" },
+  { value: "none", label: "Sem tipo" },
+  { value: "email", label: "E-mail" },
+  { value: "demo", label: "Demonstração" },
+  { value: "lunch", label: "Almoço" },
+  { value: "meeting", label: "Reunião" },
+  { value: "follow-up", label: "Acompanhamento" },
+  { value: "thank-you", label: "Agradecimento" },
+  { value: "ship", label: "Envio" },
+  { value: "call", label: "Ligação" },
 ];
 
 export const defaultConfiguration: ConfigurationContextValue = {
