@@ -23,9 +23,9 @@ export const Ready = () => (
       }}
     >
       <ScanFace className="w-32 h-32 mb-4" />
-      <h1 className="text-3xl mb-4">Welcome to shadcn-admin-kit</h1>
+      <h1 className="text-3xl mb-4">CRM Pro configurado</h1>
       <div className="text-lg opacity-75">
-        Your application is properly configured.
+        O aplicativo está configurado corretamente.
         <br />
         Now you can add a &lt;Resource&gt; as child of
         &lt;Admin&gt;&lt;/Admin&gt;
