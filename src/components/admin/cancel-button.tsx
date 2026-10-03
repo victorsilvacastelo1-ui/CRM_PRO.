@@ -40,7 +40,7 @@ export function CancelButton(props: React.ComponentProps<"button">) {
       {...props}
     >
       <CircleX />
-      <Translate i18nKey="ra.action.cancel">Cancel</Translate>
+      <Translate i18nKey="ra.action.cancel">Cancelar</Translate>
     </Button>
   );
 }
