@@ -19,6 +19,8 @@ const TABLES = [
   "favicons_excluded_domains",
   "configuration",
   "sales",
+  "organization_members",
+  "organizations",
 ];
 
 async function resetDb() {
@@ -107,10 +109,21 @@ async function createNotes({
 }) {
   if (notes.length === 0) return;
 
+  const { data: sale, error: saleError } = await adminSupabase
+    .from("sales")
+    .select("organization_id")
+    .eq("id", salesId)
+    .single();
+
+  if (saleError || !sale) {
+    throw new Error(`Failed to resolve organization: ${saleError?.message}`);
+  }
+
   const { error } = await adminSupabase.from("contact_notes").insert(
     notes.map(({ text, date, status = "cold" }) => ({
       contact_id: contactId,
       sales_id: salesId,
+      organization_id: sale.organization_id,
       text,
       date,
       status,
@@ -129,9 +142,23 @@ async function createCompany({
   name: string;
   salesId: string | number;
 }) {
+  const { data: sale, error: saleError } = await adminSupabase
+    .from("sales")
+    .select("organization_id")
+    .eq("id", salesId)
+    .single();
+
+  if (saleError || !sale) {
+    throw new Error(`Failed to resolve organization: ${saleError?.message}`);
+  }
+
   const { data, error } = await adminSupabase
     .from("companies")
-    .insert({ name, sales_id: salesId })
+    .insert({
+      name,
+      sales_id: salesId,
+      organization_id: sale.organization_id,
+    })
     .select("id")
     .single();
 
@@ -161,9 +188,20 @@ async function createContact({
     status?: "cold" | "warm" | "hot";
   }[];
 }) {
+  const { data: sale, error: saleError } = await adminSupabase
+    .from("sales")
+    .select("organization_id")
+    .eq("id", sales_id)
+    .single();
+
+  if (saleError || !sale) {
+    throw new Error(`Failed to resolve organization: ${saleError?.message}`);
+  }
+
   const { data, error } = await adminSupabase
     .from("contacts")
     .insert({
+      organization_id: sale.organization_id,
       first_name,
       last_name,
       title,
