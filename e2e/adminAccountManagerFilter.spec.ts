@@ -46,31 +46,31 @@ test.describe("admin filtering by account manager", () => {
     menu,
   }) => {
     await page.goto("/");
-    await page.getByLabel("Email").fill("john@doe.com");
-    await page.getByLabel("Password").fill("password");
-    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.getByLabel("E-mail").fill("john@doe.com");
+    await page.getByLabel("Senha").fill("password");
+    await page.getByRole("button", { name: "Entrar" }).click();
 
     await menu.goToContacts();
     await expect(page.getByText("Ada Lovelace")).toBeVisible();
     await expect(page.getByText("Grace Hopper")).toBeVisible();
 
     if (isMobile) {
-      await page.getByRole("button", { name: "Add filter" }).click();
+      await page.getByRole("button", { name: "Adicionar filtro" }).click();
     }
     await page.getByRole("button", { name: "Marie Curie" }).click();
     if (isMobile) {
-      await page.getByRole("button", { name: "Confirm" }).click();
+      await page.getByRole("button", { name: "Confirmar" }).click();
     }
 
     await expect(page.getByText("Grace Hopper")).toBeVisible();
     await expect(page.getByText("Ada Lovelace")).toBeHidden();
 
     if (isMobile) {
-      await page.getByRole("button", { name: "Add filter" }).click();
+      await page.getByRole("button", { name: "Adicionar filtro" }).click();
     }
     await page.getByRole("button", { name: "Marie Curie" }).click();
     if (isMobile) {
-      await page.getByRole("button", { name: "Confirm" }).click();
+      await page.getByRole("button", { name: "Confirmar" }).click();
     }
 
     await expect(page.getByText("Ada Lovelace")).toBeVisible();
@@ -83,18 +83,18 @@ test.describe("admin filtering by account manager", () => {
     menu,
   }) => {
     await page.goto("/");
-    await page.getByLabel("Email").fill("marie@curie.com");
-    await page.getByLabel("Password").fill("password");
-    await page.getByRole("button", { name: "Sign in" }).click();
+    await page.getByLabel("E-mail").fill("marie@curie.com");
+    await page.getByLabel("Senha").fill("password");
+    await page.getByRole("button", { name: "Entrar" }).click();
 
     await menu.goToContacts();
     await expect(page.getByText("Grace Hopper")).toBeVisible();
 
     if (isMobile) {
-      await page.getByRole("button", { name: "Add filter" }).click();
+      await page.getByRole("button", { name: "Adicionar filtro" }).click();
     }
     await expect(
-      page.getByRole("button", { name: "Me", exact: true }),
+      page.getByRole("button", { name: "Eu", exact: true }),
     ).toBeVisible();
     await expect(page.getByRole("button", { name: "John Doe" })).toBeHidden();
   });
