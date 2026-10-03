@@ -16,7 +16,10 @@ import type {
   SignUpData,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
-import { ATTACHMENTS_BUCKET } from "../commons/attachments";
+import {
+  ATTACHMENTS_BUCKET,
+  BRANDING_BUCKET,
+} from "../commons/attachments";
 import { getIsInitialized } from "./authProvider";
 import { getSupabaseClient } from "./supabase";
 
@@ -326,8 +329,7 @@ export type CrmDataProvider = ReturnType<
 const processConfigLogo = async (logo: any): Promise<string> => {
   if (typeof logo === "string") return logo;
   if (logo?.rawFile instanceof File) {
-    await uploadToBucket(logo);
-    return logo.src;
+    return uploadToBrandingBucket(logo);
   }
   return logo?.src ?? "";
 };
@@ -488,6 +490,28 @@ const getCurrentOrganizationId = async (): Promise<number> => {
   }
 
   return Number(data);
+};
+
+const uploadToBrandingBucket = async (fi: RAFile): Promise<string> => {
+  const file = fi.rawFile;
+  const fileParts = file.name.split(".");
+  const fileExt = fileParts.length > 1 ? `.${fileParts.pop()}` : "";
+  const organizationId = await getCurrentOrganizationId();
+  const filePath = `${organizationId}/${crypto.randomUUID()}${fileExt}`;
+
+  const { error } = await getSupabaseClient()
+    .storage.from(BRANDING_BUCKET)
+    .upload(filePath, file, { upsert: false });
+
+  if (error) {
+    throw error;
+  }
+
+  const { data } = getSupabaseClient()
+    .storage.from(BRANDING_BUCKET)
+    .getPublicUrl(filePath);
+
+  return data.publicUrl;
 };
 
 const uploadToBucket = async (fi: RAFile) => {
