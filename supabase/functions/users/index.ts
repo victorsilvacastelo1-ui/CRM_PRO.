@@ -81,9 +81,10 @@ async function createSale(
     throw membershipError;
   }
 
+  const { password: _password, ...saleData } = data;
   const { data: sales, error: salesError } = await supabaseAdmin
     .from("sales")
-    .insert({ ...data, user_id })
+    .insert({ ...saleData, user_id })
     .select("*");
 
   if (!sales?.length || salesError) {
@@ -437,6 +438,7 @@ async function patchUser(req: Request, currentUserSale: any) {
       .from("sales")
       .select("*")
       .eq("id", sales_id)
+      .eq("organization_id", currentUserSale.organization_id)
       .single();
     return new Response(
       JSON.stringify({
