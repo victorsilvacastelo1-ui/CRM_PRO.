@@ -134,7 +134,7 @@ export const ListView = <RecordType extends RaRecord = RaRecord>(
           {hasDashboard && (
             <BreadcrumbItem>
               <Link to="/">
-                <Translate i18nKey="ra.page.dashboard">Home</Translate>
+                <Translate i18nKey="ra.page.dashboard">Painel</Translate>
               </Link>
             </BreadcrumbItem>
           )}
