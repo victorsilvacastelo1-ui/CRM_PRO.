@@ -37,6 +37,7 @@ export const extractAndUploadAttachments = async (
     ContentType: string;
     ContentLength: number;
   }[],
+  organizationId: number,
 ): Promise<Attachment[]> => {
   return (
     await Promise.all(
@@ -59,25 +60,30 @@ export const extractAndUploadAttachments = async (
 
         const fileParts = Name.split(".");
         const fileExt = fileParts.length > 1 ? `.${Name.split(".").pop()}` : "";
-        const fileName = `${Math.random()}${fileExt}`;
+        const fileName = `${crypto.randomUUID()}${fileExt}`;
+        const filePath = `${organizationId}/${fileName}`;
         const { error: uploadError } = await supabaseAdmin.storage
           .from("attachments")
-          .upload(fileName, decodedContent);
+          .upload(filePath, decodedContent);
 
         if (uploadError) {
           console.error("uploadError", uploadError);
           throw new Error("Failed to upload attachment");
         }
 
-        const { data } = supabaseAdmin.storage
+        const { data, error: signedError } = await supabaseAdmin.storage
           .from("attachments")
-          .getPublicUrl(fileName);
+          .createSignedUrl(filePath, 60 * 60);
+
+        if (signedError || !data?.signedUrl) {
+          throw signedError ?? new Error("Failed to sign attachment URL");
+        }
 
         return {
           title: Name,
           type: ContentType,
-          path: fileName,
-          src: fixPublicUrl(data.publicUrl),
+          path: filePath,
+          src: fixPublicUrl(data.signedUrl),
         };
       }),
     )
