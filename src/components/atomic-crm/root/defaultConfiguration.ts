@@ -1,10 +1,8 @@
 import type { ConfigurationContextValue } from "./ConfigurationContext";
-// Keep upstream logo assets until a dedicated CRM Pro brand kit is added.
-import darkModeLogo from "./logos/logo_atomic_crm_dark.svg";
-import lightModeLogo from "./logos/logo_atomic_crm_light.svg";
+import crmProIcon from "./logos/crm_pro_icon.png";
 
-export const defaultDarkModeLogo = darkModeLogo;
-export const defaultLightModeLogo = lightModeLogo;
+export const defaultDarkModeLogo = crmProIcon;
+export const defaultLightModeLogo = crmProIcon;
 
 export const defaultCurrency = "BRL";
 
