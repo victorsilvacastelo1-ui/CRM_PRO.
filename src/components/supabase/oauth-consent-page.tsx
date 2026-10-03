@@ -39,12 +39,12 @@ export function OAuthConsentPage() {
   useEffect(() => {
     async function loadAuthDetails() {
       if (!authorizationId) {
-        setError("Missing authorization_id");
+        setError("Identificador de autorização não encontrado");
         setLoading(false);
         return;
       }
       if (!authProvider) {
-        setError("Auth provider not available");
+        setError("Serviço de autenticação indisponível");
         setLoading(false);
         return;
       }
@@ -112,7 +112,7 @@ export function OAuthConsentPage() {
       <Layout>
         <div className="flex flex-col space-y-2 text-center">
           <p className="text-muted-foreground">
-            {translate("ra.message.loading", { _: "Loading..." })}
+            {translate("ra.message.loading", { _: "Carregando..." })}
           </p>
         </div>
       </Layout>
@@ -124,7 +124,7 @@ export function OAuthConsentPage() {
       <Layout>
         <div className="flex flex-col space-y-2 text-center">
           <h1 className="text-2xl font-semibold tracking-tight">
-            {translate("ra.message.error", { _: "Error" })}
+            {translate("ra.message.error", { _: "Erro" })}
           </h1>
           <p className="text-destructive">{error}</p>
         </div>
@@ -138,7 +138,7 @@ export function OAuthConsentPage() {
         <div className="flex flex-col space-y-2 text-center">
           <p className="text-muted-foreground">
             {translate("ra-supabase.oauth.no_request", {
-              _: "No authorization request found",
+              _: "Nenhuma solicitação de autorização encontrada",
             })}
           </p>
         </div>
@@ -152,12 +152,12 @@ export function OAuthConsentPage() {
         <div className="flex flex-col space-y-2 text-center">
           <h1 className="text-2xl font-semibold tracking-tight">
             {translate("ra-supabase.oauth.approved", {
-              _: "Authorization Approved",
+              _: "Autorização aprovada",
             })}
           </h1>
           <p className="text-muted-foreground">
             {translate("ra-supabase.oauth.close_tab", {
-              _: "You can now close this tab.",
+              _: "Agora você pode fechar esta aba.",
             })}
           </p>
         </div>
@@ -170,12 +170,12 @@ export function OAuthConsentPage() {
       <div className="flex flex-col space-y-2 text-center">
         <h1 className="text-2xl font-semibold tracking-tight">
           {translate("ra-supabase.oauth.authorize", {
-            _: "Authorize Application",
+            _: "Autorizar aplicativo",
           })}
         </h1>
         <p className="text-muted-foreground">
           {translate("ra-supabase.oauth.authorize_details", {
-            _: "This application wants to access your account",
+            _: "Este aplicativo deseja acessar sua conta",
           })}
         </p>
       </div>
@@ -190,7 +190,7 @@ export function OAuthConsentPage() {
             <div>
               <p className="text-sm font-medium text-muted-foreground mb-2">
                 {translate("ra-supabase.oauth.permissions", {
-                  _: "Requested permissions",
+                  _: "Permissões solicitadas",
                 })}
               </p>
               <ul className="list-disc list-inside space-y-1">
@@ -210,14 +210,14 @@ export function OAuthConsentPage() {
             disabled={submitting}
             className="flex-1"
           >
-            {translate("ra.action.cancel", { _: "Deny" })}
+            {translate("ra.action.cancel", { _: "Negar" })}
           </Button>
           <Button
             onClick={handleApprove}
             disabled={submitting}
             className="flex-1"
           >
-            {translate("ra.action.confirm", { _: "Approve" })}
+            {translate("ra.action.confirm", { _: "Aprovar" })}
           </Button>
         </CardFooter>
       </Card>
