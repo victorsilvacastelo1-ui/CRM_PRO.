@@ -97,7 +97,7 @@ export const Breadcrumb = ({ children, ref }: BreadcrumbProps) => {
                     <DrawerFooter className="pt-4">
                       <DrawerClose asChild>
                         <Button variant="outline">
-                          <Translate i18nKey="ra.action.close">Close</Translate>
+                          <Translate i18nKey="ra.action.close">Fechar</Translate>
                         </Button>
                       </DrawerClose>
                     </DrawerFooter>
