@@ -1,4 +1,5 @@
 import { format } from "date-fns";
+import { ptBR } from "date-fns/locale";
 
 import type { DealStage } from "../types";
 
@@ -9,7 +10,7 @@ export const findDealLabel = (dealStages: DealStage[], dealValue: string) => {
 
 export function getRelativeTimeString(
   dateString: string,
-  locale = "en",
+  locale = "pt-BR",
 ): string {
   const date = new Date(dateString);
   date.setHours(0, 0, 0, 0);
@@ -41,12 +42,12 @@ const isoDateStringRegex = /^\d{4}-\d{2}-\d{2}$/;
 
 export function formatISODateString(dateString: string) {
   if (!isoDateStringRegex.test(dateString)) {
-    throw new Error("Invalid date format. Expected YYYY-MM-DD.");
+    throw new Error("Formato de data inválido. Use YYYY-MM-DD.");
   }
   // Some browsers will consider a date in the format YYYY-MM-DD as UTC, which can cause off-by-one-day issues depending on the user's timezone.
   // To avoid this, we can parse the date components manually and create a date object in the local timezone.
   const [year, month, day] = dateString.split("-").map(Number);
   const date = new Date(year, month - 1, day);
 
-  return format(date, "PP");
+  return format(date, "PP", { locale: ptBR });
 }
