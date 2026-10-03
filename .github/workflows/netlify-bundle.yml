@@ -1,0 +1,29 @@
+name: 📦 CRM Pro Netlify Bundle
+
+on:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  bundle:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Create source bundle
+        run: |
+          tar --exclude=.git --exclude=node_modules -czf crm-pro-source.tar.gz .
+
+      - name: Upload source bundle
+        uses: actions/upload-artifact@v4
+        with:
+          name: crm-pro-source
+          path: crm-pro-source.tar.gz
+          if-no-files-found: error
+          retention-days: 1
