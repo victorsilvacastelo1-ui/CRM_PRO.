@@ -1,5 +1,6 @@
 import { ResponsiveBar } from "@nivo/bar";
 import { format, startOfMonth } from "date-fns";
+import { ptBR } from "date-fns/locale";
 import { TrendingUp } from "lucide-react";
 import { useGetList, useTranslate } from "ra-core";
 import { memo, useMemo } from "react";
@@ -19,7 +20,7 @@ const threeMonthsAgo = new Date(
   new Date().setMonth(new Date().getMonth() - 6),
 ).toISOString();
 
-const DEFAULT_LOCALE = "en-US";
+const DEFAULT_LOCALE = "pt-BR";
 
 export const DealsChart = memo(() => {
   const translate = useTranslate();
@@ -27,8 +28,8 @@ export const DealsChart = memo(() => {
   const acceptedLanguages = navigator
     ? navigator.languages || [navigator.language]
     : [DEFAULT_LOCALE];
-  const wonLabel = findDealLabel(dealStages, "won") ?? "Won";
-  const lostLabel = findDealLabel(dealStages, "lost") ?? "Lost";
+  const wonLabel = findDealLabel(dealStages, "won") ?? "Ganho";
+  const lostLabel = findDealLabel(dealStages, "lost") ?? "Perdido";
 
   const { data, isPending } = useGetList<Deal>("deals", {
     pagination: { perPage: 100, page: 1 },
@@ -53,7 +54,7 @@ export const DealsChart = memo(() => {
 
     const amountByMonth = Object.keys(dealsByMonth).map((month) => {
       return {
-        date: format(month, "MMM"),
+        date: format(month, "MMM", { locale: ptBR }),
         won: dealsByMonth[month]
           .filter((deal: Deal) => deal.stage === "won")
           .reduce((acc: number, deal: Deal) => {
