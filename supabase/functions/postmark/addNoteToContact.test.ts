@@ -53,9 +53,11 @@ describe("addNoteToContact", () => {
       };
       mockFrom.mockReturnValue({
         select: () => ({
-          or: () => ({
+          eq: () => ({
+            or: () => ({
             maybeSingle: () =>
               Promise.resolve({ data: existingCompany, error: null }),
+            }),
           }),
         }),
       });
@@ -63,6 +65,7 @@ describe("addNoteToContact", () => {
       const result = await getOrCreateCompanyFromDomain({
         domain: "acme.com",
         salesId: 42,
+        organizationId: 77,
         companyName: "Acme",
         website: "https://acme.com",
       });
@@ -74,9 +77,11 @@ describe("addNoteToContact", () => {
     it("throws when fetching the company fails", async () => {
       mockFrom.mockReturnValue({
         select: () => ({
-          or: () => ({
+          eq: () => ({
+            or: () => ({
             maybeSingle: () =>
               Promise.resolve({ data: null, error: { message: "DB error" } }),
+            }),
           }),
         }),
       });
@@ -97,6 +102,7 @@ describe("addNoteToContact", () => {
       const result = await getOrCreateCompanyFromDomain({
         domain: "gmail.com",
         salesId: 42,
+        organizationId: 77,
         companyName: "Gmail",
         website: "https://gmail.com",
       });
@@ -119,6 +125,7 @@ describe("addNoteToContact", () => {
           select: () => ({
             or: () => ({
               maybeSingle: () => Promise.resolve({ data: null, error: null }),
+              }),
             }),
           }),
         })
@@ -132,6 +139,7 @@ describe("addNoteToContact", () => {
       const result = await getOrCreateCompanyFromDomain({
         domain: "acme.com",
         salesId: 42,
+        organizationId: 77,
         companyName: "Acme",
         website: "https://acme.com",
       });
@@ -147,6 +155,7 @@ describe("addNoteToContact", () => {
           select: () => ({
             or: () => ({
               maybeSingle: () => Promise.resolve({ data: null, error: null }),
+              }),
             }),
           }),
         })
@@ -179,6 +188,7 @@ describe("addNoteToContact", () => {
       firstName: "Alice",
       lastName: "Smith",
       salesId: 42,
+      organizationId: 77,
       domain: "acme.com",
       companyName: "Acme",
       website: "https://acme.com",
@@ -192,9 +202,11 @@ describe("addNoteToContact", () => {
       };
       mockFrom.mockReturnValue({
         select: () => ({
-          contains: () => ({
+          eq: () => ({
+            contains: () => ({
             maybeSingle: () =>
               Promise.resolve({ data: existingContact, error: null }),
+            }),
           }),
         }),
       });
@@ -208,9 +220,11 @@ describe("addNoteToContact", () => {
     it("throws when fetching the contact fails", async () => {
       mockFrom.mockReturnValue({
         select: () => ({
-          contains: () => ({
+          eq: () => ({
+            contains: () => ({
             maybeSingle: () =>
               Promise.resolve({ data: null, error: { message: "DB error" } }),
+            }),
           }),
         }),
       });
@@ -242,6 +256,7 @@ describe("addNoteToContact", () => {
           select: () => ({
             contains: () => ({
               maybeSingle: () => Promise.resolve({ data: null, error: null }),
+              }),
             }),
           }),
         })
@@ -281,6 +296,7 @@ describe("addNoteToContact", () => {
           select: () => ({
             contains: () => ({
               maybeSingle: () => Promise.resolve({ data: null, error: null }),
+              }),
             }),
           }),
         })
@@ -317,6 +333,7 @@ describe("addNoteToContact", () => {
           select: () => ({
             contains: () => ({
               maybeSingle: () => Promise.resolve({ data: null, error: null }),
+              }),
             }),
           }),
         })
@@ -528,7 +545,7 @@ describe("addNoteToContact", () => {
   });
 
   describe("addNoteToContact", () => {
-    const sales = { id: 1 };
+    const sales = { id: 1, organization_id: 77 };
     const baseParams = {
       sales,
       salesEmail: "sales@company.com",
@@ -544,8 +561,10 @@ describe("addNoteToContact", () => {
 
     const contactFound = (contact: unknown) => ({
       select: () => ({
-        contains: () => ({
-          maybeSingle: () => Promise.resolve({ data: contact, error: null }),
+        eq: () => ({
+          contains: () => ({
+            maybeSingle: () => Promise.resolve({ data: contact, error: null }),
+          }),
         }),
       }),
     });
@@ -564,7 +583,9 @@ describe("addNoteToContact", () => {
         })
         .mockReturnValueOnce({
           update: () => ({
-            eq: () => Promise.resolve({ error: null }),
+            eq: () => ({
+              eq: () => Promise.resolve({ error: null }),
+            }),
           }),
         });
 
@@ -584,13 +605,15 @@ describe("addNoteToContact", () => {
         .mockReturnValueOnce({ insert: insertNote })
         .mockReturnValueOnce({
           update: () => ({
-            eq: () => Promise.resolve({ error: null }),
+            eq: () => ({
+              eq: () => Promise.resolve({ error: null }),
+            }),
           }),
         });
 
       const result = await addNoteToContact({
         ...baseParams,
-        sales: { id: 7 },
+        sales: { id: 7, organization_id: 77 },
       });
 
       expect(result).toBeUndefined();
@@ -625,9 +648,11 @@ describe("addNoteToContact", () => {
 
       mockFrom.mockReturnValueOnce({
         select: () => ({
-          contains: () => ({
+          eq: () => ({
+            contains: () => ({
             maybeSingle: () =>
               Promise.resolve({ data: null, error: { message: "DB error" } }),
+            }),
           }),
         }),
       });
