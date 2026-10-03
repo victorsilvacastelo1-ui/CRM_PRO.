@@ -22,7 +22,7 @@ import {
 } from "@/components/ui/sidebar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { House, List } from "lucide-react";
-import crmProIcon from "@/components/atomic-crm/root/logos/crm_pro_icon.png";
+import crmProIcon from "@/components/atomic-crm/root/logos/crm_pro_icon.svg";
 
 /**
  * Navigation sidebar displaying menu items, allowing users to navigate between different sections of the application.
