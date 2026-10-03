@@ -133,6 +133,64 @@ create index if not exists tags_organization_id_idx on public.tags(organization_
 create index if not exists tasks_organization_id_idx on public.tasks(organization_id);
 create index if not exists configuration_organization_id_idx on public.configuration(organization_id);
 
+-- Composite keys/FKs prevent a record from referencing a parent that belongs
+-- to another organization, even when an attacker submits raw API requests.
+alter table public.sales
+  add constraint sales_id_organization_key unique (id, organization_id);
+alter table public.companies
+  add constraint companies_id_organization_key unique (id, organization_id);
+alter table public.contacts
+  add constraint contacts_id_organization_key unique (id, organization_id);
+alter table public.deals
+  add constraint deals_id_organization_key unique (id, organization_id);
+alter table public.tags
+  add constraint tags_id_organization_key unique (id, organization_id);
+
+alter table public.companies
+  add constraint companies_sales_tenant_fkey
+  foreign key (sales_id, organization_id)
+  references public.sales(id, organization_id);
+
+alter table public.contacts
+  add constraint contacts_company_tenant_fkey
+  foreign key (company_id, organization_id)
+  references public.companies(id, organization_id),
+  add constraint contacts_sales_tenant_fkey
+  foreign key (sales_id, organization_id)
+  references public.sales(id, organization_id);
+
+alter table public.contact_notes
+  add constraint contact_notes_contact_tenant_fkey
+  foreign key (contact_id, organization_id)
+  references public.contacts(id, organization_id),
+  add constraint contact_notes_sales_tenant_fkey
+  foreign key (sales_id, organization_id)
+  references public.sales(id, organization_id);
+
+alter table public.deals
+  add constraint deals_company_tenant_fkey
+  foreign key (company_id, organization_id)
+  references public.companies(id, organization_id),
+  add constraint deals_sales_tenant_fkey
+  foreign key (sales_id, organization_id)
+  references public.sales(id, organization_id);
+
+alter table public.deal_notes
+  add constraint deal_notes_deal_tenant_fkey
+  foreign key (deal_id, organization_id)
+  references public.deals(id, organization_id),
+  add constraint deal_notes_sales_tenant_fkey
+  foreign key (sales_id, organization_id)
+  references public.sales(id, organization_id);
+
+alter table public.tasks
+  add constraint tasks_contact_tenant_fkey
+  foreign key (contact_id, organization_id)
+  references public.contacts(id, organization_id),
+  add constraint tasks_sales_tenant_fkey
+  foreign key (sales_id, organization_id)
+  references public.sales(id, organization_id);
+
 -- Configuration remains id=1 inside each organization.
 alter table public.configuration drop constraint if exists configuration_pkey;
 alter table public.configuration
@@ -233,7 +291,7 @@ create or replace function public.set_organization_id_default()
 returns trigger
 language plpgsql
 set search_path = 'public'
-as $$
+as $
 declare
   v_organization_id bigint;
 begin
@@ -251,7 +309,66 @@ begin
 
   return new;
 end
-$$;
+$;
+
+create or replace function public.validate_contact_tags_tenant()
+returns trigger
+language plpgsql
+set search_path = 'public'
+as $
+begin
+  if exists (
+    select 1
+    from unnest(coalesce(new.tags, array[]::bigint[])) as requested_tag_id
+    left join public.tags t
+      on t.id = requested_tag_id
+     and t.organization_id = new.organization_id
+    where t.id is null
+  ) then
+    raise exception 'A contact cannot use tags from another organization';
+  end if;
+
+  return new;
+end
+$;
+
+create or replace function public.validate_deal_contacts_tenant()
+returns trigger
+language plpgsql
+set search_path = 'public'
+as $
+begin
+  if exists (
+    select 1
+    from unnest(coalesce(new.contact_ids, array[]::bigint[])) as requested_contact_id
+    left join public.contacts c
+      on c.id = requested_contact_id
+     and c.organization_id = new.organization_id
+    where c.id is null
+  ) then
+    raise exception 'A deal cannot reference contacts from another organization';
+  end if;
+
+  return new;
+end
+$;
+
+create or replace function public.handle_contact_note_created_or_updated()
+returns trigger
+language plpgsql
+security definer
+set search_path = ''
+as $
+begin
+  update public.contacts
+  set last_seen = new.date
+  where id = new.contact_id
+    and organization_id = new.organization_id
+    and (last_seen is null or last_seen < new.date);
+
+  return new;
+end
+$;
 
 -- New public signups create a new organization.
 -- Invited users can only join an existing organization when organization_id is
@@ -343,6 +460,16 @@ drop trigger if exists set_tag_organization_id_trigger on public.tags;
 create trigger set_tag_organization_id_trigger
   before insert on public.tags
   for each row execute function public.set_organization_id_default();
+
+drop trigger if exists zz_validate_contact_tags_tenant on public.contacts;
+create trigger zz_validate_contact_tags_tenant
+  before insert or update of tags, organization_id on public.contacts
+  for each row execute function public.validate_contact_tags_tenant();
+
+drop trigger if exists zz_validate_deal_contacts_tenant on public.deals;
+create trigger zz_validate_deal_contacts_tenant
+  before insert or update of contact_ids, organization_id on public.deals
+  for each row execute function public.validate_deal_contacts_tenant();
 
 -- Existing business-table triggers already call set_sales_id_default().
 -- The function above now also assigns and validates organization_id.
@@ -708,6 +835,8 @@ grant execute on function public.current_organization_id() to authenticated;
 grant execute on function public.is_org_member(bigint) to authenticated;
 grant execute on function public.is_org_admin(bigint) to authenticated;
 grant execute on function public.set_organization_id_default() to authenticated;
+grant execute on function public.validate_contact_tags_tenant() to authenticated;
+grant execute on function public.validate_deal_contacts_tenant() to authenticated;
 
 grant all on table public.organizations to service_role;
 grant all on table public.organization_members to service_role;
