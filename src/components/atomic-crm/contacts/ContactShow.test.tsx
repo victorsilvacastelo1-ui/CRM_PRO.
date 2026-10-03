@@ -59,10 +59,10 @@ describe("ContactShow", () => {
 
     await expect
       .element(screen.getByRole("combobox"))
-      .toHaveTextContent("Warm");
+      .toHaveTextContent("Morno");
 
     await screen.getByRole("combobox").click();
-    await screen.getByRole("option", { name: /hot/i }).click();
+    await screen.getByRole("option", { name: /quente/i }).click();
 
     await expect
       .poll(async () => {
@@ -73,6 +73,6 @@ describe("ContactShow", () => {
       })
       .toBe("hot");
 
-    await expect.element(screen.getByRole("combobox")).toHaveTextContent("Hot");
+    await expect.element(screen.getByRole("combobox")).toHaveTextContent("Quente");
   });
 });
