@@ -1,5 +1,5 @@
 import type { ConfigurationContextValue } from "./ConfigurationContext";
-import crmProIcon from "./logos/crm_pro_icon.png";
+import crmProIcon from "./logos/crm_pro_icon.svg";
 
 export const defaultDarkModeLogo = crmProIcon;
 export const defaultLightModeLogo = crmProIcon;
