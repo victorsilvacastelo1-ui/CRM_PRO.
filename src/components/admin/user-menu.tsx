@@ -75,7 +75,7 @@ export function UserMenu({ children }: UserMenuProps) {
           {Children.count(children) > 0 && <DropdownMenuSeparator />}
           <DropdownMenuItem onClick={() => logout()} className="cursor-pointer">
             <LogOut />
-            <Translate i18nKey="ra.auth.logout">Log out</Translate>
+            <Translate i18nKey="ra.auth.logout">Sair</Translate>
           </DropdownMenuItem>
         </DropdownMenuContent>
       </DropdownMenu>
