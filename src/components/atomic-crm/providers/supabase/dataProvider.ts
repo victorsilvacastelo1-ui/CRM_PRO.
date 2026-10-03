@@ -44,24 +44,54 @@ const processCompanyLogo = async (params: any) => {
   };
 };
 
+const refreshStoredFile = async (file: any) => {
+  if (!file?.path) return file;
+
+  const { data, error } = await getSupabaseClient()
+    .storage.from(ATTACHMENTS_BUCKET)
+    .createSignedUrl(file.path, 60 * 60);
+
+  if (error || !data?.signedUrl) return file;
+  return { ...file, src: data.signedUrl };
+};
+
+const hydrateRecordFiles = async (resource: string, record: any) => {
+  if (!record) return record;
+
+  if (resource === "companies" && record.logo) {
+    return { ...record, logo: await refreshStoredFile(record.logo) };
+  }
+
+  if (resource === "sales" && record.avatar) {
+    return { ...record, avatar: await refreshStoredFile(record.avatar) };
+  }
+
+  if (
+    (resource === "contact_notes" || resource === "deal_notes") &&
+    Array.isArray(record.attachments)
+  ) {
+    return {
+      ...record,
+      attachments: await Promise.all(
+        record.attachments.map((file: any) => refreshStoredFile(file)),
+      ),
+    };
+  }
+
+  return record;
+};
+
 const getDataProviderWithCustomMethods = () => {
   const baseDataProvider = getBaseDataProvider();
 
   return {
     ...baseDataProvider,
     async getList(resource: string, params: GetListParams) {
-      if (resource === "companies") {
-        return baseDataProvider.getList("companies_summary", params);
-      }
-      if (resource === "contacts") {
-        return baseDataProvider.getList("contacts_summary", params);
-      }
       if (resource === "activity_log") {
         const { data, total } = await baseDataProvider.getList(
           "activity_log",
           params,
         );
-        // Rename snake_case view columns to camelCase to match Activity type
         return {
           data: data.map((row: any) => ({
             ...row,
@@ -74,17 +104,32 @@ const getDataProviderWithCustomMethods = () => {
         };
       }
 
-      return baseDataProvider.getList(resource, params);
+      const result =
+        resource === "companies"
+          ? await baseDataProvider.getList("companies_summary", params)
+          : resource === "contacts"
+            ? await baseDataProvider.getList("contacts_summary", params)
+            : await baseDataProvider.getList(resource, params);
+
+      return {
+        ...result,
+        data: await Promise.all(
+          result.data.map((row: any) => hydrateRecordFiles(resource, row)),
+        ),
+      };
     },
     async getOne(resource: string, params: any) {
-      if (resource === "companies") {
-        return baseDataProvider.getOne("companies_summary", params);
-      }
-      if (resource === "contacts") {
-        return baseDataProvider.getOne("contacts_summary", params);
-      }
+      const result =
+        resource === "companies"
+          ? await baseDataProvider.getOne("companies_summary", params)
+          : resource === "contacts"
+            ? await baseDataProvider.getOne("contacts_summary", params)
+            : await baseDataProvider.getOne(resource, params);
 
-      return baseDataProvider.getOne(resource, params);
+      return {
+        ...result,
+        data: await hydrateRecordFiles(resource, result.data),
+      };
     },
 
     async signUp({
