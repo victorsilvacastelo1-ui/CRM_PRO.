@@ -87,7 +87,13 @@ const getDataProviderWithCustomMethods = () => {
       return baseDataProvider.getOne(resource, params);
     },
 
-    async signUp({ email, password, first_name, last_name }: SignUpData) {
+    async signUp({
+      email,
+      password,
+      first_name,
+      last_name,
+      organization_name,
+    }: SignUpData) {
       const response = await getSupabaseClient().auth.signUp({
         email,
         password,
@@ -95,6 +101,7 @@ const getDataProviderWithCustomMethods = () => {
           data: {
             first_name,
             last_name,
+            organization_name,
           },
         },
       });
@@ -426,6 +433,18 @@ const applyFullTextSearch = (columns: string[]) => (params: GetListParams) => {
   };
 };
 
+const getCurrentOrganizationId = async (): Promise<number> => {
+  const { data, error } = await getSupabaseClient().rpc(
+    "current_organization_id",
+  );
+
+  if (error || data == null) {
+    throw error ?? new Error("User is not associated with an organization");
+  }
+
+  return Number(data);
+};
+
 const uploadToBucket = async (fi: RAFile) => {
   if (!fi.src.startsWith("blob:") && !fi.src.startsWith("data:")) {
     // Sign URL check if path exists in the bucket
@@ -462,8 +481,9 @@ const uploadToBucket = async (fi: RAFile) => {
   const file = fi.rawFile;
   const fileParts = file.name.split(".");
   const fileExt = fileParts.length > 1 ? `.${file.name.split(".").pop()}` : "";
-  const fileName = `${Math.random()}${fileExt}`;
-  const filePath = `${fileName}`;
+  const fileName = `${crypto.randomUUID()}${fileExt}`;
+  const organizationId = await getCurrentOrganizationId();
+  const filePath = `${organizationId}/${fileName}`;
   const { error: uploadError } = await getSupabaseClient()
     .storage.from(ATTACHMENTS_BUCKET)
     .upload(filePath, dataContent);
@@ -473,12 +493,16 @@ const uploadToBucket = async (fi: RAFile) => {
     throw new Error("Failed to upload attachment");
   }
 
-  const { data } = getSupabaseClient()
+  const { data: signedData, error: signedError } = await getSupabaseClient()
     .storage.from(ATTACHMENTS_BUCKET)
-    .getPublicUrl(filePath);
+    .createSignedUrl(filePath, 60 * 60);
+
+  if (signedError || !signedData?.signedUrl) {
+    throw signedError ?? new Error("Failed to sign attachment URL");
+  }
 
   fi.path = filePath;
-  fi.src = data.publicUrl;
+  fi.src = signedData.signedUrl;
 
   // save MIME type
   const mimeType = file.type;
