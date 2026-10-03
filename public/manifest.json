@@ -3,26 +3,15 @@
   "name": "CRM Pro",
   "icons": [
     {
-      "src": "favicon.ico",
-      "sizes": "48x48 32x32 24x24 16x16",
-      "type": "image/x-icon"
-    },
-    {
-      "src": "appIcon/192.png",
-      "type": "image/png",
-      "sizes": "192x192",
+      "src": "crm-pro-icon.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
       "purpose": "any"
     },
     {
-      "src": "appIcon/512.png",
-      "type": "image/png",
-      "sizes": "512x512",
-      "purpose": "any"
-    },
-    {
-      "src": "appIcon/maskable_icon_x512.png",
-      "type": "image/png",
-      "sizes": "512x512",
+      "src": "crm-pro-maskable.svg",
+      "type": "image/svg+xml",
+      "sizes": "any",
       "purpose": "maskable"
     }
   ],
