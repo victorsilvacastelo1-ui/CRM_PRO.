@@ -69,11 +69,32 @@ async function createSales({
   password: string;
   administrator?: boolean;
 }) {
+  // Preserve the original fixture semantics: multiple sales created in the
+  // same test belong to the same CRM organization.
+  const { data: existingSale } = await adminSupabase
+    .from("sales")
+    .select("organization_id")
+    .order("id", { ascending: true })
+    .limit(1)
+    .maybeSingle();
+
   const { data: userData, error: userError } =
     await adminSupabase.auth.admin.createUser({
       email,
       password,
       email_confirm: true,
+      ...(existingSale?.organization_id
+        ? {
+            app_metadata: {
+              organization_id: existingSale.organization_id,
+              organization_role: administrator ? "admin" : "member",
+            },
+          }
+        : {
+            user_metadata: {
+              organization_name: "E2E Organization",
+            },
+          }),
     });
 
   if (userError) {
@@ -90,6 +111,12 @@ async function createSales({
   if (error) {
     throw new Error(`Failed to create sales: ${error.message}`);
   }
+
+  await adminSupabase
+    .from("organization_members")
+    .update({ role: administrator ? "admin" : "member" })
+    .eq("user_id", userData.user?.id)
+    .eq("organization_id", data.organization_id);
 
   return data;
 }
