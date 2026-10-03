@@ -22,5 +22,13 @@ export const ptBrSupabaseMessages = {
     validation: {
       password_mismatch: "As senhas não coincidem",
     },
+    oauth: {
+      no_request: "Nenhuma solicitação de autorização encontrada",
+      approved: "Autorização aprovada",
+      close_tab: "Agora você pode fechar esta aba.",
+      authorize: "Autorizar aplicativo",
+      authorize_details: "Este aplicativo deseja acessar sua conta",
+      permissions: "Permissões solicitadas",
+    },
   },
 };
