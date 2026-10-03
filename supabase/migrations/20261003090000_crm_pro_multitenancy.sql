@@ -291,7 +291,7 @@ create or replace function public.set_organization_id_default()
 returns trigger
 language plpgsql
 set search_path = 'public'
-as $
+as $function$
 declare
   v_organization_id bigint;
 begin
@@ -309,13 +309,13 @@ begin
 
   return new;
 end
-$;
+$function$;
 
 create or replace function public.validate_contact_tags_tenant()
 returns trigger
 language plpgsql
 set search_path = 'public'
-as $
+as $function$
 begin
   if exists (
     select 1
@@ -330,13 +330,13 @@ begin
 
   return new;
 end
-$;
+$function$;
 
 create or replace function public.validate_deal_contacts_tenant()
 returns trigger
 language plpgsql
 set search_path = 'public'
-as $
+as $function$
 begin
   if exists (
     select 1
@@ -351,14 +351,14 @@ begin
 
   return new;
 end
-$;
+$function$;
 
 create or replace function public.handle_contact_note_created_or_updated()
 returns trigger
 language plpgsql
 security definer
 set search_path = ''
-as $
+as $function$
 begin
   update public.contacts
   set last_seen = new.date
@@ -368,7 +368,7 @@ begin
 
   return new;
 end
-$;
+$function$;
 
 -- New public signups create a new organization.
 -- Invited users can only join an existing organization when organization_id is
