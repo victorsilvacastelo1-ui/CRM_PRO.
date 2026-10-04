@@ -1,7 +1,8 @@
-import { useRecordContext, useTranslate } from "ra-core";
+import { useGetIdentity, useRecordContext, useTranslate } from "ra-core";
 import { CreateButton } from "@/components/admin/create-button";
 import { DataTable } from "@/components/admin/data-table";
 import { ExportButton } from "@/components/admin/export-button";
+import { DeleteButton } from "@/components/admin/delete-button";
 import { List } from "@/components/admin/list";
 import { SearchInput } from "@/components/admin/search-input";
 import { Badge } from "@/components/ui/badge";
@@ -43,6 +44,26 @@ const OptionsField = (_props: { label?: string | boolean }) => {
   );
 };
 
+const UserDeleteField = (_props: { label?: string | boolean }) => {
+  const record = useRecordContext();
+  const { identity } = useGetIdentity();
+
+  if (!record || record.id === identity?.id) {
+    return null;
+  }
+
+  return (
+    <div onClick={(event) => event.stopPropagation()}>
+      <DeleteButton
+        label="Excluir"
+        size="sm"
+        variant="ghost"
+        successMessage="Usuário excluído com sucesso"
+      />
+    </div>
+  );
+};
+
 export function SalesList() {
   return (
     <List
@@ -56,6 +77,9 @@ export function SalesList() {
         <DataTable.Col source="email" />
         <DataTable.Col label={false}>
           <OptionsField />
+        </DataTable.Col>
+        <DataTable.Col label={false}>
+          <UserDeleteField />
         </DataTable.Col>
       </DataTable>
     </List>
