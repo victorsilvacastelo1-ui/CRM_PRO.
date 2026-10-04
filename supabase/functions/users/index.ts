@@ -283,6 +283,81 @@ async function inviteUser(req: Request, currentUserSale: any) {
   }
 }
 
+
+async function deleteUsers(req: Request, currentUserSale: any) {
+  if (!currentUserSale.administrator) {
+    return createErrorResponse(401, "Not Authorized");
+  }
+
+  const body = await req.json();
+  const requestedIds = Array.isArray(body?.sales_ids)
+    ? body.sales_ids
+    : body?.sales_id != null
+      ? [body.sales_id]
+      : [];
+
+  const salesIds = [
+    ...new Set(
+      requestedIds
+        .map((id: unknown) => Number(id))
+        .filter((id: number) => Number.isInteger(id) && id > 0),
+    ),
+  ];
+
+  if (!salesIds.length) {
+    return createErrorResponse(400, "Selecione pelo menos um usuário", {
+      code: "missing_sales_ids",
+    });
+  }
+
+  if (salesIds.includes(Number(currentUserSale.id))) {
+    return createErrorResponse(
+      400,
+      "Você não pode excluir o usuário que está conectado no momento.",
+      { code: "cannot_delete_current_user" },
+    );
+  }
+
+  const { data: userIds, error: deleteError } = await supabaseAdmin.rpc(
+    "delete_organization_sales_users",
+    {
+      p_target_sales_ids: salesIds,
+      p_replacement_sales_id: currentUserSale.id,
+      p_organization_id: currentUserSale.organization_id,
+    },
+  );
+
+  if (deleteError) {
+    console.error("Error deleting CRM users:", deleteError);
+    return createErrorResponse(
+      400,
+      deleteError.message || "Não foi possível excluir o usuário.",
+      { code: deleteError.code ?? "delete_user_failed" },
+    );
+  }
+
+  const authCleanupWarnings: string[] = [];
+  for (const userId of (userIds ?? []) as string[]) {
+    const { error: authDeleteError } =
+      await supabaseAdmin.auth.admin.deleteUser(userId);
+
+    if (authDeleteError) {
+      console.error("Error deleting auth user:", authDeleteError);
+      authCleanupWarnings.push(userId);
+    }
+  }
+
+  return new Response(
+    JSON.stringify({
+      data: salesIds,
+      auth_cleanup_warnings: authCleanupWarnings,
+    }),
+    {
+      headers: { "Content-Type": "application/json", ...corsHeaders },
+    },
+  );
+}
+
 async function patchUser(req: Request, currentUserSale: any) {
   const {
     sales_id,
@@ -474,6 +549,10 @@ Deno.serve(async (req: Request) =>
 
           if (req.method === "PATCH") {
             return await patchUser(req, currentUserSale);
+          }
+
+          if (req.method === "DELETE") {
+            return await deleteUsers(req, currentUserSale);
           }
         } catch (e) {
           console.error("Unhandled error in the users function:", e);
