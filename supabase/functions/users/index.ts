@@ -249,15 +249,21 @@ async function inviteUser(req: Request, currentUserSale: any) {
   }
 
   try {
-    const sale = await createSale(user.id, {
-      email: normalizedEmail,
-      password: "",
-      first_name,
-      last_name,
-      disabled: disabled ?? false,
-      administrator: administrator ?? false,
-      organization_id: currentUserSale.organization_id,
-    });
+    // The auth.users INSERT trigger already creates the sales/profile row.
+    // Updating app_metadata above moves that row into the inviter's organization
+    // and applies the requested role. Do not INSERT a second sales row here,
+    // because sales.user_id is unique.
+    await updateSaleDisabled(
+      user.id,
+      disabled ?? false,
+      currentUserSale.organization_id,
+    );
+
+    const sale = await updateSaleAdministrator(
+      user.id,
+      administrator ?? false,
+      currentUserSale.organization_id,
+    );
 
     return new Response(
       JSON.stringify({
@@ -268,10 +274,7 @@ async function inviteUser(req: Request, currentUserSale: any) {
       },
     );
   } catch (error) {
-    console.error("Error creating invited CRM user:", error);
-
-    // Avoid leaving an orphan auth account if the CRM profile cannot be created.
-    await supabaseAdmin.auth.admin.deleteUser(user.id).catch(() => undefined);
+    console.error("Error finalizing invited CRM user:", error);
 
     return createErrorResponse(
       (error as any).status ?? 500,
