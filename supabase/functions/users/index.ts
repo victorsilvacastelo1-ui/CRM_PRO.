@@ -171,126 +171,93 @@ async function updateSaleAvatar(
 }
 
 async function inviteUser(req: Request, currentUserSale: any) {
-  const { email, password, first_name, last_name, disabled, administrator } =
+  const { email, first_name, last_name, disabled, administrator } =
     await req.json();
 
   if (!currentUserSale.administrator) {
     return createErrorResponse(401, "Not Authorized");
   }
 
-  const takenEmail = await findEmailUsedByAnotherSale(
-    email ? [email.trim().toLowerCase()] : [],
-  );
+  const normalizedEmail =
+    typeof email === "string" ? email.trim().toLowerCase() : "";
+  if (!normalizedEmail) {
+    return createErrorResponse(400, "E-mail é obrigatório", {
+      code: "email_required",
+    });
+  }
+
+  const takenEmail = await findEmailUsedByAnotherSale([normalizedEmail]);
   if (takenEmail) {
     return createErrorResponse(
       409,
-      `Email already used by another user: ${takenEmail}`,
+      "E-mail já está vinculado a outro usuário: " + takenEmail,
       { code: "email_taken", email: takenEmail },
     );
   }
 
-  const { data, error: userError } = await supabaseAdmin.auth.admin.createUser({
-    email,
-    password,
-    user_metadata: { first_name, last_name },
-    app_metadata: {
-      organization_id: currentUserSale.organization_id,
-      organization_role: administrator ? "admin" : "member",
-    },
-  });
+  const redirectTo =
+    Deno.env.get("CRM_INVITE_REDIRECT_URL") ??
+    "https://crm-pro-n8jh.netlify.app/sistema/auth-callback.html";
 
-  let user = data?.user;
-
-  if (!user && userError?.code === "email_exists") {
-    // This may happen if users cleared their database but not the users
-    // We have to create the sale directly
-    const { data, error } = await supabaseAdmin.rpc("get_user_id_by_email", {
-      email,
+  const { data: inviteData, error: inviteError } =
+    await supabaseAdmin.auth.admin.inviteUserByEmail(normalizedEmail, {
+      data: { first_name, last_name },
+      redirectTo,
     });
 
-    if (!data || error) {
-      console.error(
-        `Error inviting user: error=${error ?? "could not fetch users for email"}`,
-      );
-      return createErrorResponse(500, "Internal Server Error");
-    }
+  if (inviteError) {
+    console.error("Error inviting user:", inviteError);
 
-    user = data[0];
-    try {
-      const { data: existingSale, error: salesError } = await supabaseAdmin
-        .from("sales")
-        .select("*")
-        .eq("user_id", user.id);
-      if (salesError) {
-        return createErrorResponse(salesError.status, salesError.message, {
-          code: salesError.code,
-        });
-      }
-      if (existingSale.length > 0) {
-        return createErrorResponse(
-          400,
-          "A sales for this email already exists",
-        );
-      }
+    const isRateLimit =
+      inviteError.status === 429 ||
+      /rate limit/i.test(inviteError.message ?? "");
 
-      const sale = await createSale(user.id, {
-        email,
-        password,
-        first_name,
-        last_name,
-        disabled,
-        administrator,
+    return createErrorResponse(
+      isRateLimit ? 429 : (inviteError.status ?? 500),
+      isRateLimit
+        ? "Limite de envio de e-mails do Supabase atingido. Configure um SMTP próprio para enviar novos convites."
+        : "Não foi possível enviar o convite por e-mail.",
+      {
+        code: isRateLimit ? "email_rate_limit" : (inviteError.code ?? "invite_failed"),
+      },
+    );
+  }
+
+  const user = inviteData?.user;
+  if (!user) {
+    console.error("Error inviting user: undefined invited user");
+    return createErrorResponse(500, "Não foi possível criar o usuário", {
+      code: "invite_user_missing",
+    });
+  }
+
+  const { error: metadataError } =
+    await supabaseAdmin.auth.admin.updateUserById(user.id, {
+      app_metadata: {
         organization_id: currentUserSale.organization_id,
-      });
+        organization_role: administrator ? "admin" : "member",
+      },
+      user_metadata: { first_name, last_name },
+    });
 
-      return new Response(
-        JSON.stringify({
-          data: sale,
-        }),
-        {
-          headers: { "Content-Type": "application/json", ...corsHeaders },
-        },
-      );
-    } catch (error) {
-      return createErrorResponse(
-        (error as any).status ?? 500,
-        (error as Error).message,
-        {
-          code: (error as any).code,
-        },
-      );
-    }
-  } else {
-    if (userError) {
-      console.error(`Error inviting user: user_error=${userError}`);
-      return createErrorResponse(userError.status, userError.message, {
-        code: userError.code,
-      });
-    }
-    if (!data?.user) {
-      console.error("Error inviting user: undefined user");
-      return createErrorResponse(500, "Internal Server Error");
-    }
-    const { error: emailError } =
-      await supabaseAdmin.auth.admin.inviteUserByEmail(email);
-
-    if (emailError) {
-      console.error(`Error inviting user, email_error=${emailError}`);
-      return createErrorResponse(500, "Failed to send invitation mail");
-    }
+  if (metadataError) {
+    console.error("Error updating invited user metadata:", metadataError);
+    await supabaseAdmin.auth.admin.deleteUser(user.id).catch(() => undefined);
+    return createErrorResponse(500, "Não foi possível concluir o convite", {
+      code: "invite_metadata_failed",
+    });
   }
 
   try {
-    await updateSaleDisabled(
-      user.id,
-      disabled,
-      currentUserSale.organization_id,
-    );
-    const sale = await updateSaleAdministrator(
-      user.id,
-      administrator,
-      currentUserSale.organization_id,
-    );
+    const sale = await createSale(user.id, {
+      email: normalizedEmail,
+      password: "",
+      first_name,
+      last_name,
+      disabled: disabled ?? false,
+      administrator: administrator ?? false,
+      organization_id: currentUserSale.organization_id,
+    });
 
     return new Response(
       JSON.stringify({
@@ -300,9 +267,19 @@ async function inviteUser(req: Request, currentUserSale: any) {
         headers: { "Content-Type": "application/json", ...corsHeaders },
       },
     );
-  } catch (e) {
-    console.error("Error patching sale:", e);
-    return createErrorResponse(500, "Internal Server Error");
+  } catch (error) {
+    console.error("Error creating invited CRM user:", error);
+
+    // Avoid leaving an orphan auth account if the CRM profile cannot be created.
+    await supabaseAdmin.auth.admin.deleteUser(user.id).catch(() => undefined);
+
+    return createErrorResponse(
+      (error as any).status ?? 500,
+      (error as Error).message || "Não foi possível concluir o convite",
+      {
+        code: (error as any).code ?? "invite_profile_failed",
+      },
+    );
   }
 }
 
