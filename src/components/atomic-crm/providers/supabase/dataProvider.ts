@@ -135,6 +135,64 @@ const getDataProviderWithCustomMethods = () => {
       };
     },
 
+    async delete(resource: string, params: any) {
+      if (resource === "sales") {
+        const { data, error } = await getSupabaseClient().functions.invoke<{
+          data: Identifier[];
+        }>("users", {
+          method: "DELETE",
+          body: { sales_id: params.id },
+        });
+
+        if (!data || error) {
+          const errorDetails = await (async () => {
+            try {
+              return (await error?.context?.json()) ?? {};
+            } catch {
+              return {};
+            }
+          })();
+          throw Object.assign(
+            new Error(errorDetails?.message || "Não foi possível excluir o usuário"),
+            { code: errorDetails?.code },
+          );
+        }
+
+        return { data: params.previousData ?? { id: params.id } };
+      }
+
+      return baseDataProvider.delete(resource, params);
+    },
+    async deleteMany(resource: string, params: any) {
+      if (resource === "sales") {
+        const { data, error } = await getSupabaseClient().functions.invoke<{
+          data: Identifier[];
+        }>("users", {
+          method: "DELETE",
+          body: { sales_ids: params.ids },
+        });
+
+        if (!data || error) {
+          const errorDetails = await (async () => {
+            try {
+              return (await error?.context?.json()) ?? {};
+            } catch {
+              return {};
+            }
+          })();
+          throw Object.assign(
+            new Error(
+              errorDetails?.message || "Não foi possível excluir os usuários",
+            ),
+            { code: errorDetails?.code },
+          );
+        }
+
+        return { data: params.ids };
+      }
+
+      return baseDataProvider.deleteMany(resource, params);
+    },
     async signUp({
       email,
       password,
