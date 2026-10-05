@@ -1,0 +1,1775 @@
+<!doctype html>
+<html lang="pt-BR">
+  <head>
+    <meta name="referrer" content="no-referrer" />
+    <script src="/auth-redirect.js"></script>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>CRM Pro — Gestão de clientes, oportunidades e vendas</title>
+    <meta
+      name="description"
+      content="CRM Pro organiza clientes, empresas, negociações, tarefas e histórico comercial em um só lugar. Teste grátis por 15 dias."
+    />
+    <meta name="theme-color" content="#07162e" />
+    <meta name="robots" content="index,follow" />
+    <meta property="og:title" content="CRM Pro — Gestão de clientes e vendas" />
+    <meta
+      property="og:description"
+      content="Organize clientes, oportunidades e tarefas em um CRM simples, rápido e profissional."
+    />
+    <meta property="og:type" content="website" />
+    <link rel="icon" href="assets/crm-pro-icon.svg" type="image/svg+xml" />
+    <style>
+      :root {
+        --bg: #f6f8fc;
+        --surface: #fff;
+        --surface-soft: #f1f5fb;
+        --text: #09162d;
+        --muted: #637089;
+        --navy: #07162e;
+        --navy2: #0b2554;
+        --blue: #1676ff;
+        --blue2: #0a58d1;
+        --cyan: #18b6df;
+        --green: #11c98a;
+        --line: #dfe7f2;
+        --shadow: 0 28px 90px rgba(13, 38, 85, 0.13);
+        --shadow2: 0 18px 55px rgba(11, 37, 86, 0.09);
+        --radius: 28px;
+        --max: 1200px;
+      }
+      * {
+        box-sizing: border-box;
+      }
+      html {
+        scroll-behavior: smooth;
+      }
+      body {
+        margin: 0;
+        font-family:
+          Inter,
+          ui-sans-serif,
+          system-ui,
+          -apple-system,
+          BlinkMacSystemFont,
+          "Segoe UI",
+          sans-serif;
+        color: var(--text);
+        background: var(--bg);
+        line-height: 1.55;
+        overflow-x: hidden;
+      }
+      a {
+        text-decoration: none;
+        color: inherit;
+      }
+      button {
+        font: inherit;
+      }
+      .container {
+        width: min(var(--max), calc(100% - 40px));
+        margin: auto;
+      }
+      .nav {
+        position: fixed;
+        top: 0;
+        left: 0;
+        right: 0;
+        z-index: 60;
+        transition: 0.25s;
+      }
+      .nav.scrolled {
+        background: rgba(247, 249, 253, 0.92);
+        backdrop-filter: blur(18px);
+        border-bottom: 1px solid rgba(215, 225, 239, 0.8);
+        box-shadow: 0 8px 28px rgba(6, 22, 48, 0.05);
+      }
+      .navin {
+        height: 78px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 11px;
+        font-weight: 900;
+      }
+      .brand img {
+        width: 46px;
+        height: 46px;
+      }
+      .brand-name {
+        font-size: 21px;
+        letter-spacing: -0.02em;
+      }
+      .navlinks {
+        display: flex;
+        align-items: center;
+        gap: 25px;
+        font-size: 14px;
+        font-weight: 750;
+        color: #34435e;
+      }
+      .navlinks > a:not(.btn):hover {
+        color: var(--blue);
+      }
+      .nav-actions {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+      }
+      .btn {
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        gap: 9px;
+        border-radius: 14px;
+        padding: 13px 19px;
+        font-weight: 850;
+        border: 1px solid transparent;
+        transition: 0.22s;
+        cursor: pointer;
+        white-space: nowrap;
+      }
+      .btn-primary {
+        color: #fff;
+        background: linear-gradient(135deg, #0c5fe6, #168cff 65%, #0acb93);
+        box-shadow: 0 12px 28px rgba(15, 105, 230, 0.25);
+      }
+      .btn-primary:hover {
+        transform: translateY(-2px);
+        box-shadow: 0 16px 34px rgba(15, 105, 230, 0.32);
+      }
+      .btn-light {
+        background: #fff;
+        border-color: #dbe4f0;
+        color: #182744;
+      }
+      .btn-dark {
+        background: #0a1d3f;
+        color: #fff;
+      }
+      .btn-outline-dark {
+        border-color: rgba(255, 255, 255, 0.22);
+        color: #fff;
+        background: rgba(255, 255, 255, 0.06);
+      }
+      .menu-btn {
+        display: none;
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 12px;
+        width: 44px;
+        height: 44px;
+        font-size: 22px;
+      }
+      .hero {
+        position: relative;
+        min-height: 780px;
+        padding: 150px 0 88px;
+        background:
+          radial-gradient(
+            circle at 78% 22%,
+            rgba(21, 145, 255, 0.16),
+            transparent 28%
+          ),
+          radial-gradient(
+            circle at 88% 60%,
+            rgba(17, 201, 138, 0.14),
+            transparent 26%
+          ),
+          linear-gradient(180deg, #fbfdff 0, #f5f8fd 75%, #f6f8fc 100%);
+      }
+      .hero:before {
+        content: "";
+        position: absolute;
+        inset: 0;
+        background-image:
+          linear-gradient(rgba(12, 63, 125, 0.035) 1px, transparent 1px),
+          linear-gradient(90deg, rgba(12, 63, 125, 0.035) 1px, transparent 1px);
+        background-size: 48px 48px;
+        mask-image: linear-gradient(to bottom, black, transparent 85%);
+      }
+      .hero-grid {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: 1fr 1.02fr;
+        gap: 60px;
+        align-items: center;
+      }
+      .badge {
+        display: inline-flex;
+        align-items: center;
+        gap: 9px;
+        background: #e9f8f3;
+        border: 1px solid #cceee2;
+        color: #087b5d;
+        border-radius: 999px;
+        padding: 8px 13px;
+        font-size: 13px;
+        font-weight: 850;
+      }
+      .badge i {
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: var(--green);
+        box-shadow: 0 0 0 5px rgba(17, 201, 138, 0.12);
+      }
+      h1 {
+        font-size: clamp(48px, 6.3vw, 78px);
+        letter-spacing: -0.055em;
+        line-height: 0.98;
+        margin: 22px 0 22px;
+        max-width: 690px;
+      }
+      .hero h1 .accent {
+        background: linear-gradient(90deg, #0a55c9 10%, #168cff 55%, #0bc48b);
+        -webkit-background-clip: text;
+        background-clip: text;
+        color: transparent;
+      }
+      .lead {
+        font-size: 19px;
+        color: var(--muted);
+        max-width: 660px;
+      }
+      .hero-actions {
+        display: flex;
+        gap: 12px;
+        flex-wrap: wrap;
+        margin: 31px 0 17px;
+      }
+      .trustline {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 16px;
+        color: #62708b;
+        font-size: 13px;
+        font-weight: 650;
+      }
+      .trustline span:before {
+        content: "✓";
+        color: #08a473;
+        font-weight: 900;
+        margin-right: 7px;
+      }
+      .hero-note {
+        font-size: 12px;
+        color: #7a879d;
+        margin-top: 14px;
+      }
+      .visual-wrap {
+        position: relative;
+        perspective: 1200px;
+      }
+      .visual-glow {
+        position: absolute;
+        width: 90%;
+        height: 80%;
+        left: 7%;
+        top: 16%;
+        border-radius: 50%;
+        filter: blur(55px);
+        background: linear-gradient(
+          120deg,
+          rgba(19, 116, 255, 0.25),
+          rgba(13, 200, 142, 0.18)
+        );
+        z-index: -1;
+      }
+      .app-shell {
+        background: #0a1d3f;
+        padding: 10px;
+        border-radius: 28px;
+        box-shadow: 0 40px 110px rgba(4, 24, 60, 0.32);
+        transform: rotateY(-4deg) rotateX(2deg);
+        transition: 0.4s;
+      }
+      .app-shell:hover {
+        transform: rotateY(0) rotateX(0) translateY(-4px);
+      }
+      .app-window {
+        background: #f7f9fd;
+        border-radius: 20px;
+        overflow: hidden;
+        min-height: 510px;
+      }
+      .app-top {
+        height: 58px;
+        background: #fff;
+        border-bottom: 1px solid #e3e9f3;
+        display: flex;
+        align-items: center;
+        padding: 0 17px;
+        gap: 9px;
+      }
+      .circle {
+        width: 9px;
+        height: 9px;
+        border-radius: 50%;
+        background: #c9d3e1;
+      }
+      .app-logo {
+        margin-left: 12px;
+        font-size: 12px;
+        font-weight: 900;
+        color: #17315f;
+      }
+      .app-layout {
+        display: grid;
+        grid-template-columns: 150px 1fr;
+        min-height: 452px;
+      }
+      .sidebar {
+        background: linear-gradient(180deg, #0b1e43, #0a2a59);
+        color: #dbe8ff;
+        padding: 18px 12px;
+      }
+      .sidebar .mini-brand {
+        display: flex;
+        align-items: center;
+        gap: 7px;
+        font-size: 12px;
+        font-weight: 900;
+        margin: 4px 5px 18px;
+      }
+      .sidebar .mini-brand img {
+        width: 25px;
+        height: 25px;
+      }
+      .side-item {
+        padding: 9px 9px;
+        border-radius: 10px;
+        margin: 5px 0;
+        font-size: 11px;
+        color: #a9c2e9;
+      }
+      .side-item.active {
+        background: linear-gradient(90deg, #154b9d, #1679ee);
+        color: #fff;
+      }
+      .dashboard {
+        padding: 20px;
+      }
+      .dash-head {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin-bottom: 15px;
+      }
+      .dash-head h3 {
+        font-size: 16px;
+        margin: 0;
+      }
+      .dash-head span {
+        font-size: 10px;
+        color: #77869f;
+      }
+      .kpis {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+      .kpi {
+        background: #fff;
+        border: 1px solid #e2e8f2;
+        border-radius: 14px;
+        padding: 13px;
+      }
+      .kpi small {
+        font-size: 9px;
+        color: #8490a5;
+      }
+      .kpi b {
+        display: block;
+        font-size: 20px;
+        margin-top: 4px;
+      }
+      .kpi em {
+        font-size: 9px;
+        color: #0b9a6f;
+        font-style: normal;
+      }
+      .pipeline-title {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        margin: 17px 0 9px;
+      }
+      .pipeline-title b {
+        font-size: 12px;
+      }
+      .pipeline-title span {
+        font-size: 9px;
+        color: #7c89a0;
+      }
+      .pipeline {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 9px;
+      }
+      .pipe-col {
+        background: #eef3f9;
+        border-radius: 13px;
+        padding: 9px;
+      }
+      .pipe-col h4 {
+        font-size: 9px;
+        color: #66748b;
+        margin: 0 0 8px;
+      }
+      .deal {
+        background: #fff;
+        border: 1px solid #dfe7f2;
+        border-radius: 10px;
+        padding: 9px;
+        margin: 7px 0;
+        box-shadow: 0 4px 13px rgba(24, 50, 90, 0.05);
+      }
+      .deal b {
+        display: block;
+        font-size: 9px;
+      }
+      .deal span {
+        font-size: 8px;
+        color: #7e8aa0;
+      }
+      .deal strong {
+        display: block;
+        font-size: 10px;
+        margin-top: 7px;
+        color: #0b4ba5;
+      }
+      .activity {
+        margin-top: 12px;
+        background: #fff;
+        border: 1px solid #e1e8f1;
+        border-radius: 13px;
+        padding: 11px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+      }
+      .activity div {
+        font-size: 9px;
+      }
+      .activity span {
+        font-size: 8px;
+        color: #7f8da3;
+      }
+      .float-card {
+        position: absolute;
+        background: #fff;
+        border: 1px solid #e0e7f0;
+        border-radius: 16px;
+        padding: 14px 16px;
+        box-shadow: 0 18px 55px rgba(7, 30, 75, 0.18);
+        z-index: 3;
+        animation: float 4.5s ease-in-out infinite;
+      }
+      .float-card b {
+        font-size: 18px;
+        display: block;
+      }
+      .float-card span {
+        font-size: 10px;
+        color: #738099;
+      }
+      .float-card.one {
+        right: -22px;
+        top: 38px;
+      }
+      .float-card.two {
+        left: -28px;
+        bottom: 48px;
+        animation-delay: -2s;
+      }
+      .dot-green {
+        display: inline-block;
+        width: 8px;
+        height: 8px;
+        border-radius: 50%;
+        background: #12c98b;
+        margin-right: 7px;
+      }
+      @keyframes float {
+        0%,
+        100% {
+          transform: translateY(0);
+        }
+        50% {
+          transform: translateY(-9px);
+        }
+      }
+      .proof {
+        padding: 18px 0 8px;
+      }
+      .proof-row {
+        display: grid;
+        grid-template-columns: repeat(4, 1fr);
+        gap: 12px;
+      }
+      .proof-item {
+        background: rgba(255, 255, 255, 0.72);
+        border: 1px solid var(--line);
+        border-radius: 18px;
+        padding: 18px;
+        text-align: center;
+      }
+      .proof-item b {
+        display: block;
+        font-size: 25px;
+        letter-spacing: -0.03em;
+      }
+      .proof-item span {
+        font-size: 12px;
+        color: var(--muted);
+      }
+      section {
+        padding: 92px 0;
+      }
+      .section-head {
+        max-width: 770px;
+        margin: 0 auto 46px;
+        text-align: center;
+      }
+      .kicker {
+        display: inline-block;
+        font-size: 12px;
+        font-weight: 900;
+        letter-spacing: 0.12em;
+        text-transform: uppercase;
+        color: #0b6ad8;
+        margin-bottom: 10px;
+      }
+      .section-head h2 {
+        font-size: clamp(34px, 4.5vw, 52px);
+        line-height: 1.06;
+        letter-spacing: -0.045em;
+        margin: 0 0 14px;
+      }
+      .section-head p {
+        font-size: 17px;
+        color: var(--muted);
+        margin: 0;
+      }
+      .problem-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 24px;
+      }
+      .problem-card {
+        border-radius: 30px;
+        padding: 34px;
+        min-height: 320px;
+      }
+      .problem-card.dark {
+        background: linear-gradient(145deg, #07162e, #0b2d61);
+        color: #fff;
+      }
+      .problem-card.light {
+        background: #fff;
+        border: 1px solid var(--line);
+        box-shadow: var(--shadow2);
+      }
+      .problem-card h3 {
+        font-size: 28px;
+        letter-spacing: -0.03em;
+        margin: 0 0 17px;
+      }
+      .problem-card p {
+        color: #b9cae7;
+      }
+      .problem-card.light p {
+        color: var(--muted);
+      }
+      .check-list {
+        list-style: none;
+        padding: 0;
+        margin: 22px 0 0;
+      }
+      .check-list li {
+        padding: 9px 0;
+        display: flex;
+        gap: 10px;
+        align-items: flex-start;
+      }
+      .check-list li:before {
+        content: "";
+        width: 22px;
+        height: 22px;
+        border-radius: 50%;
+        background: rgba(15, 201, 139, 0.13);
+        border: 1px solid rgba(15, 201, 139, 0.35);
+        flex: none;
+        margin-top: 1px;
+      }
+      .problem-card.dark .check-list li:before {
+        background: rgba(27, 213, 151, 0.16);
+      }
+      .features {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 18px;
+      }
+      .feature {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 24px;
+        padding: 25px;
+        box-shadow: 0 8px 34px rgba(20, 47, 84, 0.045);
+        transition: 0.22s;
+      }
+      .feature:hover {
+        transform: translateY(-5px);
+        border-color: #cbdcf2;
+        box-shadow: 0 20px 48px rgba(18, 56, 110, 0.1);
+      }
+      .iconbox {
+        width: 48px;
+        height: 48px;
+        border-radius: 15px;
+        display: grid;
+        place-items: center;
+        background: linear-gradient(145deg, #eaf3ff, #eafbf6);
+        color: #0b65d2;
+      }
+      .iconbox svg {
+        width: 23px;
+        height: 23px;
+      }
+      .feature h3 {
+        font-size: 19px;
+        margin: 18px 0 8px;
+      }
+      .feature p {
+        font-size: 14px;
+        color: var(--muted);
+        margin: 0;
+      }
+      .flow-section {
+        background: linear-gradient(180deg, #07162e 0, #0a2653 100%);
+        color: #fff;
+        position: relative;
+        overflow: hidden;
+      }
+      .flow-section:before {
+        content: "";
+        position: absolute;
+        width: 500px;
+        height: 500px;
+        border-radius: 50%;
+        right: -150px;
+        top: -200px;
+        background: radial-gradient(
+          circle,
+          rgba(19, 164, 255, 0.23),
+          transparent 65%
+        );
+      }
+      .flow-section .section-head p {
+        color: #b7c8e2;
+      }
+      .steps {
+        position: relative;
+        z-index: 2;
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+      .step {
+        background: rgba(255, 255, 255, 0.055);
+        border: 1px solid rgba(255, 255, 255, 0.13);
+        border-radius: 24px;
+        padding: 27px;
+      }
+      .step-num {
+        width: 38px;
+        height: 38px;
+        border-radius: 50%;
+        display: grid;
+        place-items: center;
+        font-weight: 900;
+        background: linear-gradient(135deg, #167fff, #12c98a);
+        margin-bottom: 20px;
+      }
+      .step h3 {
+        font-size: 20px;
+        margin: 0 0 8px;
+      }
+      .step p {
+        color: #b9c9df;
+        margin: 0;
+        font-size: 14px;
+      }
+      .showcase {
+        display: grid;
+        grid-template-columns: 0.95fr 1.05fr;
+        gap: 46px;
+        align-items: center;
+      }
+      .show-copy h2 {
+        font-size: 44px;
+        line-height: 1.06;
+        letter-spacing: -0.045em;
+        margin: 0 0 16px;
+      }
+      .show-copy p {
+        color: var(--muted);
+        font-size: 17px;
+      }
+      .show-points {
+        display: grid;
+        gap: 11px;
+        margin-top: 24px;
+      }
+      .show-point {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 15px;
+        padding: 14px 16px;
+        font-size: 14px;
+        font-weight: 700;
+      }
+      .show-point span {
+        color: #0ba774;
+        margin-right: 8px;
+      }
+      .mini-board {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        padding: 18px;
+        box-shadow: var(--shadow);
+      }
+      .board-head {
+        display: flex;
+        justify-content: space-between;
+        align-items: center;
+        margin-bottom: 15px;
+      }
+      .board-head b {
+        font-size: 14px;
+      }
+      .board-head span {
+        font-size: 11px;
+        color: #7c8aa0;
+      }
+      .board-columns {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 10px;
+      }
+      .board-col {
+        background: #f1f4f9;
+        border-radius: 15px;
+        padding: 10px;
+      }
+      .board-col h4 {
+        font-size: 10px;
+        color: #6f7c91;
+        margin: 0 0 9px;
+      }
+      .board-deal {
+        background: #fff;
+        border-radius: 11px;
+        padding: 10px;
+        margin: 7px 0;
+        border: 1px solid #e2e8f0;
+      }
+      .board-deal strong {
+        font-size: 10px;
+        display: block;
+      }
+      .board-deal span {
+        font-size: 9px;
+        color: #7d8a9d;
+      }
+      .board-deal b {
+        font-size: 10px;
+        color: #0c56b3;
+        display: block;
+        margin-top: 8px;
+      }
+      .pricing-wrap {
+        position: relative;
+      }
+      .pricing {
+        display: grid;
+        grid-template-columns: repeat(3, 1fr);
+        gap: 20px;
+      }
+      .plan {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 28px;
+        padding: 28px;
+        display: flex;
+        flex-direction: column;
+        box-shadow: 0 15px 52px rgba(13, 40, 88, 0.06);
+      }
+      .plan.popular {
+        border: 2px solid #1683f2;
+        box-shadow: 0 26px 70px rgba(12, 103, 222, 0.15);
+        transform: translateY(-8px);
+        position: relative;
+      }
+      .popular-label {
+        position: absolute;
+        top: 17px;
+        right: 18px;
+        background: #e8f3ff;
+        color: #0c65c8;
+        border-radius: 999px;
+        padding: 7px 10px;
+        font-size: 11px;
+        font-weight: 900;
+      }
+      .plan h3 {
+        font-size: 24px;
+        margin: 4px 0 6px;
+      }
+      .plan .desc {
+        font-size: 13px;
+        color: var(--muted);
+        min-height: 42px;
+      }
+      .price {
+        font-size: 43px;
+        letter-spacing: -0.05em;
+        font-weight: 950;
+        margin: 10px 0 0;
+      }
+      .price span {
+        font-size: 13px;
+        color: #7c889d;
+        font-weight: 700;
+        letter-spacing: 0;
+      }
+      .plan ul {
+        list-style: none;
+        padding: 0;
+        margin: 22px 0 26px;
+        flex: 1;
+      }
+      .plan li {
+        padding: 9px 0;
+        border-bottom: 1px solid #eef2f6;
+        font-size: 14px;
+      }
+      .plan li:before {
+        content: "✓";
+        font-weight: 900;
+        color: #0aaa76;
+        margin-right: 9px;
+      }
+      .plan .btn {
+        width: 100%;
+      }
+      .pricing-note {
+        text-align: center;
+        color: #78859a;
+        font-size: 12px;
+        margin-top: 24px;
+      }
+      .faq {
+        max-width: 860px;
+        margin: auto;
+      }
+      .faq details {
+        background: #fff;
+        border: 1px solid var(--line);
+        border-radius: 17px;
+        padding: 18px 20px;
+        margin: 11px 0;
+      }
+      .faq summary {
+        cursor: pointer;
+        font-weight: 850;
+        list-style: none;
+        display: flex;
+        justify-content: space-between;
+        gap: 16px;
+      }
+      .faq summary::-webkit-details-marker {
+        display: none;
+      }
+      .faq summary:after {
+        content: "+";
+        font-size: 22px;
+        color: #6b7890;
+      }
+      .faq details[open] summary:after {
+        content: "−";
+      }
+      .faq p {
+        color: var(--muted);
+        margin-bottom: 2px;
+      }
+      .cta {
+        background:
+          radial-gradient(
+            circle at 85% 30%,
+            rgba(26, 194, 143, 0.28),
+            transparent 30%
+          ),
+          linear-gradient(130deg, #06142b, #0a4da9);
+        color: #fff;
+        border-radius: 34px;
+        padding: 54px;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 30px;
+        box-shadow: 0 30px 90px rgba(6, 27, 65, 0.22);
+      }
+      .cta h2 {
+        font-size: 40px;
+        line-height: 1.07;
+        letter-spacing: -0.04em;
+        margin: 0 0 10px;
+      }
+      .cta p {
+        color: #cbdaef;
+        margin: 0;
+      }
+      .cta .btn {
+        background: #fff;
+        color: #092650;
+      }
+      .footer {
+        padding: 48px 0 34px;
+        border-top: 1px solid var(--line);
+        background: #fff;
+      }
+      .footer-top {
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 24px;
+        flex-wrap: wrap;
+      }
+      .footlinks {
+        display: flex;
+        gap: 20px;
+        flex-wrap: wrap;
+        font-size: 13px;
+        color: #5d6a80;
+      }
+      .footer small {
+        display: block;
+        margin-top: 24px;
+        color: #8a95a7;
+      }
+      .reveal {
+        opacity: 0;
+        transform: translateY(20px);
+        transition: 0.7s cubic-bezier(0.2, 0.7, 0.2, 1);
+      }
+      .reveal.visible {
+        opacity: 1;
+        transform: none;
+      }
+      .legal {
+        max-width: 900px;
+        margin: 120px auto 80px;
+        padding: 0 20px;
+      }
+      .legal h1 {
+        font-size: 48px;
+        letter-spacing: -0.04em;
+      }
+      .legal h2 {
+        margin-top: 34px;
+      }
+      .legal p,
+      .legal li {
+        color: var(--muted);
+      }
+      @media (max-width: 960px) {
+        .navlinks {
+          display: none;
+        }
+        .menu-btn {
+          display: grid;
+          place-items: center;
+        }
+        .nav.open .navlinks {
+          display: flex;
+          position: absolute;
+          left: 20px;
+          right: 20px;
+          top: 70px;
+          background: #fff;
+          border: 1px solid var(--line);
+          border-radius: 18px;
+          padding: 18px;
+          flex-direction: column;
+          align-items: stretch;
+          box-shadow: var(--shadow2);
+        }
+        .nav.open .navlinks .nav-actions {
+          display: grid;
+        }
+        .hero {
+          padding-top: 125px;
+        }
+        .hero-grid,
+        .showcase,
+        .problem-grid {
+          grid-template-columns: 1fr;
+        }
+        .visual-wrap {
+          max-width: 760px;
+          margin: auto;
+        }
+        .proof-row {
+          grid-template-columns: repeat(2, 1fr);
+        }
+        .features,
+        .pricing,
+        .steps {
+          grid-template-columns: 1fr;
+        }
+        .plan.popular {
+          transform: none;
+        }
+        .cta {
+          display: block;
+        }
+        .cta .btn {
+          margin-top: 24px;
+        }
+        .app-shell {
+          transform: none;
+        }
+        .float-card.one {
+          right: 8px;
+        }
+        .float-card.two {
+          left: 8px;
+        }
+      }
+      @media (max-width: 620px) {
+        .container {
+          width: min(var(--max), calc(100% - 24px));
+        }
+        .navin {
+          height: 68px;
+        }
+        .brand-name {
+          font-size: 18px;
+        }
+        .brand img {
+          width: 40px;
+          height: 40px;
+        }
+        .nav-actions > .btn-light {
+          display: none;
+        }
+        .hero {
+          min-height: auto;
+          padding: 105px 0 65px;
+        }
+        .hero-actions .btn {
+          width: 100%;
+        }
+        .lead {
+          font-size: 17px;
+        }
+        .proof-row {
+          grid-template-columns: 1fr 1fr;
+        }
+        .proof-item {
+          padding: 14px;
+        }
+        .app-layout {
+          grid-template-columns: 92px 1fr;
+        }
+        .sidebar {
+          padding: 12px 7px;
+        }
+        .side-item {
+          font-size: 8px;
+          padding: 7px;
+        }
+        .dashboard {
+          padding: 12px;
+        }
+        .kpis,
+        .pipeline,
+        .board-columns {
+          grid-template-columns: 1fr;
+        }
+        .app-window {
+          min-height: 0;
+        }
+        .float-card {
+          display: none;
+        }
+        section {
+          padding: 70px 0;
+        }
+        .problem-card {
+          padding: 25px;
+          min-height: 0;
+        }
+        .feature {
+          padding: 22px;
+        }
+        .cta {
+          padding: 33px 25px;
+        }
+        .cta h2 {
+          font-size: 32px;
+        }
+        .footer-top {
+          align-items: flex-start;
+          flex-direction: column;
+        }
+        .legal h1 {
+          font-size: 40px;
+        }
+      }
+    </style>
+    <script>
+      (function () {
+        const hash = window.location.hash;
+        const params = new URLSearchParams(window.location.search);
+        if (
+          hash.startsWith("#/") ||
+          /(?:^#|&)access_token=/.test(hash) ||
+          params.has("code")
+        ) {
+          window.location.replace(
+            "/sistema.html" + window.location.search + hash,
+          );
+        }
+      })();
+    </script>
+  </head>
+  <body>
+    <nav class="nav" id="nav">
+      <div class="container navin">
+        <a class="brand" href="#inicio"
+          ><img src="assets/crm-pro-icon.svg" alt="CRM Pro" /><span
+            class="brand-name"
+            >CRM Pro</span
+          ></a
+        >
+        <div class="navlinks" id="navlinks">
+          <a href="#recursos">Recursos</a
+          ><a href="#como-funciona">Como funciona</a><a href="#planos">Planos</a
+          ><a href="#faq">FAQ</a>
+          <div class="nav-actions">
+            <a class="btn btn-light" href="/sistema">Entrar</a
+            ><a class="btn btn-primary" href="/sistema">Começar grátis</a>
+          </div>
+        </div>
+        <button class="menu-btn" id="menuBtn" aria-label="Abrir menu">
+          ☰
+        </button>
+      </div>
+    </nav>
+
+    <main>
+      <section class="hero" id="inicio">
+        <div class="container hero-grid">
+          <div>
+            <span class="badge"
+              ><i></i> CRM para equipes comerciais no Brasil</span
+            >
+            <h1>
+              Menos planilhas.
+              <span class="accent">Mais vendas sob controle.</span>
+            </h1>
+            <p class="lead">
+              Centralize empresas, contatos, oportunidades, tarefas e histórico
+              comercial em um CRM simples de usar e profissional para crescer
+              com organização.
+            </p>
+            <div class="hero-actions">
+              <a class="btn btn-primary" href="/sistema"
+                >Começar 15 dias grátis →</a
+              ><a class="btn btn-light" href="#demo">Ver como funciona</a>
+            </div>
+            <div class="trustline">
+              <span>15 dias grátis</span><span>Sem fidelidade</span
+              ><span>Importação CSV</span><span>Uso em equipe</span>
+            </div>
+            <div class="hero-note">
+              A assinatura é feita apenas se você decidir continuar após o
+              período de teste.
+            </div>
+          </div>
+          <div class="visual-wrap reveal">
+            <div class="visual-glow"></div>
+            <div class="float-card one">
+              <span><i class="dot-green"></i>Pipeline ativo</span
+              ><b>R$ 42.600</b>
+            </div>
+            <div class="float-card two">
+              <span>Próximas tarefas</span><b>12</b>
+            </div>
+            <div class="app-shell">
+              <div class="app-window">
+                <div class="app-top">
+                  <span class="circle"></span><span class="circle"></span
+                  ><span class="circle"></span
+                  ><span class="app-logo">CRM Pro</span>
+                </div>
+                <div class="app-layout">
+                  <aside class="sidebar">
+                    <div class="mini-brand">
+                      <img src="assets/crm-pro-icon.svg" alt="" /><span
+                        >CRM Pro</span
+                      >
+                    </div>
+                    <div class="side-item active">Dashboard</div>
+                    <div class="side-item">Contatos</div>
+                    <div class="side-item">Empresas</div>
+                    <div class="side-item">Negociações</div>
+                    <div class="side-item">Tarefas</div>
+                    <div class="side-item">Configurações</div>
+                  </aside>
+                  <div class="dashboard">
+                    <div class="dash-head">
+                      <h3>Visão comercial</h3>
+                      <span>Hoje</span>
+                    </div>
+                    <div class="kpis">
+                      <div class="kpi">
+                        <small>Contatos</small><b>248</b
+                        ><em>Base organizada</em>
+                      </div>
+                      <div class="kpi">
+                        <small>Negociações</small><b>37</b><em>Em andamento</em>
+                      </div>
+                      <div class="kpi">
+                        <small>Tarefas</small><b>12</b><em>Para hoje</em>
+                      </div>
+                    </div>
+                    <div class="pipeline-title">
+                      <b>Pipeline de vendas</b><span>Atualizado agora</span>
+                    </div>
+                    <div class="pipeline">
+                      <div class="pipe-col">
+                        <h4>OPORTUNIDADE</h4>
+                        <div class="deal">
+                          <b>Construtora Alfa</b><span>Contato: Carlos</span
+                          ><strong>R$ 8.500</strong>
+                        </div>
+                        <div class="deal">
+                          <b>Grupo Nova</b><span>Contato: Marina</span
+                          ><strong>R$ 3.200</strong>
+                        </div>
+                      </div>
+                      <div class="pipe-col">
+                        <h4>PROPOSTA</h4>
+                        <div class="deal">
+                          <b>Comercial Sul</b><span>Proposta enviada</span
+                          ><strong>R$ 12.900</strong>
+                        </div>
+                      </div>
+                      <div class="pipe-col">
+                        <h4>NEGOCIAÇÃO</h4>
+                        <div class="deal">
+                          <b>Empresa Delta</b><span>Reunião agendada</span
+                          ><strong>R$ 18.000</strong>
+                        </div>
+                      </div>
+                    </div>
+                    <div class="activity">
+                      <div>
+                        <b>Próxima atividade</b><br /><span
+                          >Ligar para Construtora Alfa</span
+                        >
+                      </div>
+                      <div><b>14:30</b></div>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <div class="proof">
+        <div class="container proof-row reveal">
+          <div class="proof-item">
+            <b>15 dias</b><span>para testar sem custo</span>
+          </div>
+          <div class="proof-item">
+            <b>3–25</b><span>usuários conforme o plano</span>
+          </div>
+          <div class="proof-item">
+            <b>1 só lugar</b><span>para clientes e negociações</span>
+          </div>
+          <div class="proof-item">
+            <b>CSV</b><span>para importar sua base</span>
+          </div>
+        </div>
+      </div>
+
+      <section>
+        <div class="container">
+          <div class="section-head reveal">
+            <span class="kicker">Por que usar</span>
+            <h2>Seu comercial precisa de clareza, não de mais uma planilha.</h2>
+            <p>
+              O CRM Pro reúne o contexto de cada cliente e mantém o próximo
+              passo visível para toda a equipe.
+            </p>
+          </div>
+          <div class="problem-grid">
+            <article class="problem-card dark reveal">
+              <h3>Sem CRM</h3>
+              <p>
+                Informações ficam espalhadas, retornos se perdem e ninguém sabe
+                exatamente em que etapa está cada oportunidade.
+              </p>
+              <ul class="check-list">
+                <li>Contatos em planilhas e mensagens</li>
+                <li>Follow-ups esquecidos</li>
+                <li>Histórico comercial descentralizado</li>
+                <li>Difícil acompanhar o funil</li>
+              </ul>
+            </article>
+            <article class="problem-card light reveal">
+              <h3>Com CRM Pro</h3>
+              <p>
+                Empresas, contatos, tarefas e negociações ficam conectados em um
+                fluxo simples, visual e rastreável.
+              </p>
+              <ul class="check-list">
+                <li>Visão organizada de cada cliente</li>
+                <li>Funil comercial por etapas</li>
+                <li>Tarefas e próximos passos</li>
+                <li>Notas e histórico no mesmo lugar</li>
+              </ul>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section id="recursos">
+        <div class="container">
+          <div class="section-head reveal">
+            <span class="kicker">Recursos</span>
+            <h2>O essencial para vender com organização.</h2>
+            <p>
+              Recursos que entram direto na rotina da equipe sem exigir uma
+              implantação complicada.
+            </p>
+          </div>
+          <div class="features">
+            <article class="feature reveal">
+              <div class="iconbox">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
+                  <circle cx="9" cy="7" r="4" />
+                  <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
+                  <path d="M16 3.13a4 4 0 0 1 0 7.75" />
+                </svg>
+              </div>
+              <h3>Empresas e contatos</h3>
+              <p>
+                Centralize dados comerciais, pessoas de contato e informações
+                relevantes de cada cliente.
+              </p>
+            </article>
+            <article class="feature reveal">
+              <div class="iconbox">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M3 3h18v18H3z" />
+                  <path d="M8 3v18M16 3v18" />
+                </svg>
+              </div>
+              <h3>Funil de negociações</h3>
+              <p>
+                Acompanhe oportunidades por etapa e visualize rapidamente o
+                andamento das vendas.
+              </p>
+            </article>
+            <article class="feature reveal">
+              <div class="iconbox">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M9 11l3 3L22 4" />
+                  <path
+                    d="M21 12v7a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h11"
+                  />
+                </svg>
+              </div>
+              <h3>Tarefas e follow-up</h3>
+              <p>
+                Registre ligações, reuniões e retornos para manter o próximo
+                passo sempre visível.
+              </p>
+            </article>
+            <article class="feature reveal">
+              <div class="iconbox">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M4 4h16v16H4z" />
+                  <path d="M8 8h8M8 12h8M8 16h5" />
+                </svg>
+              </div>
+              <h3>Notas e histórico</h3>
+              <p>
+                Mantenha o contexto de conversas e decisões junto ao cadastro do
+                cliente e da negociação.
+              </p>
+            </article>
+            <article class="feature reveal">
+              <div class="iconbox">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <path d="M12 3v12" />
+                  <path d="M7 10l5 5 5-5" />
+                  <path d="M5 21h14" />
+                </svg>
+              </div>
+              <h3>Importação CSV</h3>
+              <p>
+                Leve sua base de dados para o CRM Pro com mais agilidade e menos
+                digitação manual.
+              </p>
+            </article>
+            <article class="feature reveal">
+              <div class="iconbox">
+                <svg
+                  viewBox="0 0 24 24"
+                  fill="none"
+                  stroke="currentColor"
+                  stroke-width="2"
+                >
+                  <circle cx="12" cy="12" r="3" />
+                  <path
+                    d="M19.4 15a1.7 1.7 0 0 0 .34 1.88l.06.06-2.83 2.83-.06-.06A1.7 1.7 0 0 0 15 19.4a1.7 1.7 0 0 0-1 .6l-.08.08H10l-.08-.08a1.7 1.7 0 0 0-1-.6 1.7 1.7 0 0 0-1.88.34l-.06.06-2.83-2.83.06-.06A1.7 1.7 0 0 0 4.6 15a1.7 1.7 0 0 0-.6-1l-.08-.08V10l.08-.08a1.7 1.7 0 0 0 .6-1 1.7 1.7 0 0 0-.34-1.88l-.06-.06 2.83-2.83.06.06A1.7 1.7 0 0 0 9 4.6a1.7 1.7 0 0 0 1-.6l.08-.08H14l.08.08a1.7 1.7 0 0 0 1 .6 1.7 1.7 0 0 0 1.88-.34l.06-.06 2.83 2.83-.06.06A1.7 1.7 0 0 0 19.4 9a1.7 1.7 0 0 0 .6 1l.08.08V14l-.08.08a1.7 1.7 0 0 0-.6.92z"
+                  />
+                </svg>
+              </div>
+              <h3>Equipe e configurações</h3>
+              <p>
+                Convide usuários e adapte etapas, setores e tipos de atividade à
+                rotina da sua operação.
+              </p>
+            </article>
+          </div>
+        </div>
+      </section>
+
+      <section class="flow-section" id="como-funciona">
+        <div class="container">
+          <div class="section-head reveal">
+            <span class="kicker" style="color: #50e6b3">Como funciona</span>
+            <h2>Comece rápido. Organize melhor. Acompanhe tudo.</h2>
+            <p>
+              O CRM Pro entra na rotina comercial sem exigir uma implantação
+              pesada.
+            </p>
+          </div>
+          <div class="steps">
+            <div class="step reveal">
+              <div class="step-num">1</div>
+              <h3>Crie sua conta</h3>
+              <p>
+                Comece com 15 dias grátis e configure os dados principais da sua
+                empresa.
+              </p>
+            </div>
+            <div class="step reveal">
+              <div class="step-num">2</div>
+              <h3>Traga sua base</h3>
+              <p>
+                Cadastre empresas e contatos ou importe os dados existentes por
+                CSV.
+              </p>
+            </div>
+            <div class="step reveal">
+              <div class="step-num">3</div>
+              <h3>Controle o funil</h3>
+              <p>
+                Crie oportunidades, acompanhe tarefas e registre todo o
+                histórico comercial.
+              </p>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="demo">
+        <div class="container showcase">
+          <div class="show-copy reveal">
+            <span class="kicker">Visão prática</span>
+            <h2>
+              Veja o que precisa de atenção sem procurar em vários lugares.
+            </h2>
+            <p>
+              O pipeline mostra as negociações por etapa e facilita identificar
+              rapidamente o que está parado, o que exige retorno e o que está
+              avançando.
+            </p>
+            <div class="show-points">
+              <div class="show-point">
+                <span>✓</span>Oportunidades organizadas por etapa
+              </div>
+              <div class="show-point">
+                <span>✓</span>Valor e contexto de cada negociação
+              </div>
+              <div class="show-point">
+                <span>✓</span>Próximos passos registrados
+              </div>
+            </div>
+          </div>
+          <div class="mini-board reveal">
+            <div class="board-head">
+              <b>Pipeline comercial</b><span>Exemplo visual</span>
+            </div>
+            <div class="board-columns">
+              <div class="board-col">
+                <h4>OPORTUNIDADE</h4>
+                <div class="board-deal">
+                  <strong>Construtora Alfa</strong><span>Contato: Carlos</span
+                  ><b>R$ 8.500</b>
+                </div>
+                <div class="board-deal">
+                  <strong>Grupo Nova</strong><span>Contato: Marina</span
+                  ><b>R$ 3.200</b>
+                </div>
+              </div>
+              <div class="board-col">
+                <h4>PROPOSTA</h4>
+                <div class="board-deal">
+                  <strong>Comercial Sul</strong><span>Proposta enviada</span
+                  ><b>R$ 12.900</b>
+                </div>
+              </div>
+              <div class="board-col">
+                <h4>NEGOCIAÇÃO</h4>
+                <div class="board-deal">
+                  <strong>Empresa Delta</strong><span>Reunião agendada</span
+                  ><b>R$ 18.000</b>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </section>
+
+      <section id="planos">
+        <div class="container pricing-wrap">
+          <div class="section-head reveal">
+            <span class="kicker">Planos</span>
+            <h2>Escolha o tamanho certo para sua equipe.</h2>
+            <p>
+              Teste por 15 dias. Se decidir continuar, escolha um dos planos
+              mensais do CRM Pro.
+            </p>
+          </div>
+          <div class="pricing">
+            <article class="plan reveal">
+              <h3>Básico</h3>
+              <p class="desc">Para autônomos e equipes pequenas.</p>
+              <div class="price">R$ 39,90 <span>/mês</span></div>
+              <ul>
+                <li>Até 3 usuários</li>
+                <li>Até 1.000 contatos</li>
+                <li>Empresas e contatos</li>
+                <li>Funil de vendas</li>
+                <li>Tarefas, notas e histórico</li>
+                <li>Importação CSV</li>
+              </ul>
+              <a
+                class="btn btn-light"
+                href="https://mpago.la/2D2vEJK"
+                target="_blank"
+                rel="noopener"
+                >Assinar Básico</a
+              >
+            </article>
+            <article class="plan popular reveal">
+              <span class="popular-label">MAIS POPULAR</span>
+              <h3>Pro</h3>
+              <p class="desc">Para equipes comerciais em crescimento.</p>
+              <div class="price">R$ 69,90 <span>/mês</span></div>
+              <ul>
+                <li>Até 10 usuários</li>
+                <li>Até 10.000 contatos</li>
+                <li>Tudo do Básico</li>
+                <li>Personalização de etapas</li>
+                <li>Mais capacidade para a equipe</li>
+                <li>Suporte prioritário</li>
+              </ul>
+              <a
+                class="btn btn-primary"
+                href="https://mpago.la/18oAL7C"
+                target="_blank"
+                rel="noopener"
+                >Assinar Pro</a
+              >
+            </article>
+            <article class="plan reveal">
+              <h3>Empresa</h3>
+              <p class="desc">Para operações comerciais maiores.</p>
+              <div class="price">R$ 119,90 <span>/mês</span></div>
+              <ul>
+                <li>Até 25 usuários</li>
+                <li>Capacidade ampliada</li>
+                <li>Tudo do Pro</li>
+                <li>Controle administrativo</li>
+                <li>Prioridade no suporte</li>
+                <li>Preparado para crescer</li>
+              </ul>
+              <a
+                class="btn btn-light"
+                href="https://mpago.la/1j8Mw4w"
+                target="_blank"
+                rel="noopener"
+                >Assinar Empresa</a
+              >
+            </article>
+          </div>
+          <p class="pricing-note">
+            O teste grátis é realizado dentro do CRM Pro. A assinatura é feita
+            apenas quando você decidir continuar usando o serviço.
+          </p>
+        </div>
+      </section>
+
+      <section id="faq">
+        <div class="container">
+          <div class="section-head reveal">
+            <span class="kicker">FAQ</span>
+            <h2>Perguntas frequentes</h2>
+          </div>
+          <div class="faq reveal">
+            <details>
+              <summary>Como funcionam os 15 dias grátis?</summary>
+              <p>
+                Você cria sua conta e usa o CRM Pro por 15 dias. Se quiser
+                continuar, basta escolher um plano e concluir a assinatura.
+              </p>
+            </details>
+            <details>
+              <summary>Preciso pagar para testar?</summary>
+              <p>
+                Não. O período de teste é controlado dentro do CRM Pro. O
+                pagamento só é necessário para continuar após o término do
+                teste.
+              </p>
+            </details>
+            <details>
+              <summary>Posso cancelar?</summary>
+              <p>
+                Sim. Os planos são mensais e não exigem fidelidade permanente.
+              </p>
+            </details>
+            <details>
+              <summary>Consigo importar meus contatos?</summary>
+              <p>
+                Sim. O CRM Pro possui importação CSV para facilitar a entrada da
+                sua base de contatos.
+              </p>
+            </details>
+            <details>
+              <summary>Para qual empresa o CRM Pro é indicado?</summary>
+              <p>
+                Principalmente para pequenas e médias empresas que precisam
+                organizar clientes, oportunidades, tarefas e histórico
+                comercial.
+              </p>
+            </details>
+          </div>
+        </div>
+      </section>
+
+      <section>
+        <div class="container">
+          <div class="cta reveal">
+            <div>
+              <h2>Comece com 15 dias grátis.</h2>
+              <p>
+                Organize sua operação comercial e veja se o CRM Pro se encaixa
+                na rotina da sua empresa.
+              </p>
+            </div>
+            <a class="btn" href="/sistema">Criar minha conta →</a>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <footer class="footer">
+      <div class="container">
+        <div class="footer-top">
+          <a class="brand" href="#inicio"
+            ><img src="assets/crm-pro-icon.svg" alt="CRM Pro" /><span
+              class="brand-name"
+              >CRM Pro</span
+            ></a
+          >
+          <div class="footlinks">
+            <a href="#recursos">Recursos</a><a href="#planos">Planos</a
+            ><a href="/privacidade">Privacidade</a><a href="/termos">Termos</a
+            ><a href="/sistema">Entrar</a>
+          </div>
+        </div>
+        <small>© 2026 CRM Pro. Todos os direitos reservados.</small>
+      </div>
+    </footer>
+
+    <script>
+      const nav = document.getElementById("nav"),
+        menuBtn = document.getElementById("menuBtn");
+      addEventListener("scroll", () =>
+        nav.classList.toggle("scrolled", scrollY > 18),
+      );
+      menuBtn.addEventListener("click", () => nav.classList.toggle("open"));
+      document
+        .querySelectorAll("#navlinks a")
+        .forEach((a) =>
+          a.addEventListener("click", () => nav.classList.remove("open")),
+        );
+      const obs = new IntersectionObserver(
+        (entries) =>
+          entries.forEach((e) => {
+            if (e.isIntersecting) {
+              e.target.classList.add("visible");
+              obs.unobserve(e.target);
+            }
+          }),
+        { threshold: 0.12 },
+      );
+      document.querySelectorAll(".reveal").forEach((el) => obs.observe(el));
+    </script>
+  </body>
+</html>

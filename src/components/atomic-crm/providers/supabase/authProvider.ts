@@ -1,11 +1,16 @@
 import type { AuthProvider } from "ra-core";
-import { supabaseAuthProvider } from "ra-supabase-core";
+import {
+  type ResetPasswordParams,
+  supabaseAuthProvider,
+} from "ra-supabase-core";
 
 import { canAccess } from "../commons/canAccess";
 import { getSupabaseClient } from "./supabase";
+import { completeAuthCallback, getAuthCallbackUrl } from "./authCallback";
 
 const getBaseAuthProvider = () =>
   supabaseAuthProvider(getSupabaseClient(), {
+    redirectTo: getAuthCallbackUrl(),
     getIdentity: async () => {
       const sale = await getSale();
 
@@ -21,16 +26,17 @@ const getBaseAuthProvider = () =>
     },
   });
 
-// To speed up checks, we cache the initialization state
-// and the current sale in the local storage. They are cleared on logout.
+// Only initialization is cached. Roles and disabled status are read from the
+// server so an old browser profile cannot grant access to another session.
 const IS_INITIALIZED_CACHE_KEY = "RaStore.auth.is_initialized";
 const CURRENT_SALE_CACHE_KEY = "RaStore.auth.current_sale";
 
 function getLocalStorage(): Storage | null {
-  if (typeof window !== "undefined" && window.localStorage) {
-    return window.localStorage;
+  try {
+    return typeof window === "undefined" ? null : window.localStorage;
+  } catch {
+    return null;
   }
-  return null;
 }
 
 export async function getIsInitialized() {
@@ -53,12 +59,6 @@ export async function getIsInitialized() {
 }
 
 const getSale = async () => {
-  const storage = getLocalStorage();
-  const cachedValue = storage?.getItem(CURRENT_SALE_CACHE_KEY);
-  if (cachedValue != null) {
-    return JSON.parse(cachedValue);
-  }
-
   const { data: dataSession, error: errorSession } =
     await getSupabaseClient().auth.getSession();
 
@@ -69,7 +69,9 @@ const getSale = async () => {
 
   const { data: dataSale, error: errorSale } = await getSupabaseClient()
     .from("sales")
-    .select("id, organization_id, first_name, last_name, avatar, administrator, disabled")
+    .select(
+      "id, organization_id, first_name, last_name, avatar, administrator, disabled",
+    )
     .match({ user_id: dataSession?.session?.user.id })
     .single();
 
@@ -78,7 +80,6 @@ const getSale = async () => {
     return undefined;
   }
 
-  storage?.setItem(CURRENT_SALE_CACHE_KEY, JSON.stringify(dataSale));
   return dataSale;
 };
 
@@ -86,13 +87,22 @@ function clearCache() {
   const storage = getLocalStorage();
   storage?.removeItem(IS_INITIALIZED_CACHE_KEY);
   storage?.removeItem(CURRENT_SALE_CACHE_KEY);
+  storage?.removeItem("REACT_QUERY_OFFLINE_CACHE");
 }
 
 export const getAuthProvider = (): AuthProvider => {
   const baseAuthProvider = getBaseAuthProvider();
   return {
     ...baseAuthProvider,
+    handleCallback: () => completeAuthCallback(getSupabaseClient()),
+    resetPassword: (params: ResetPasswordParams) =>
+      baseAuthProvider.resetPassword({
+        ...params,
+        email: params.email.trim().toLowerCase(),
+        redirectTo: getAuthCallbackUrl(),
+      }),
     login: async (params) => {
+      clearCache();
       if (params.ssoDomain) {
         const { error } = await getSupabaseClient().auth.signInWithSSO({
           domain: params.ssoDomain,

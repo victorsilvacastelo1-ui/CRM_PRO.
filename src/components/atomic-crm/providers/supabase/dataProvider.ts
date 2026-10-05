@@ -16,12 +16,10 @@ import type {
   SignUpData,
 } from "../../types";
 import type { ConfigurationContextValue } from "../../root/ConfigurationContext";
-import {
-  ATTACHMENTS_BUCKET,
-  BRANDING_BUCKET,
-} from "../commons/attachments";
+import { ATTACHMENTS_BUCKET, BRANDING_BUCKET } from "../commons/attachments";
 import { getIsInitialized } from "./authProvider";
 import { getSupabaseClient } from "./supabase";
+import { getAuthCallbackUrl } from "./authCallback";
 
 const getBaseDataProvider = () =>
   supabaseDataProvider({
@@ -153,7 +151,9 @@ const getDataProviderWithCustomMethods = () => {
             }
           })();
           throw Object.assign(
-            new Error(errorDetails?.message || "Não foi possível excluir o usuário"),
+            new Error(
+              errorDetails?.message || "Não foi possível excluir o usuário",
+            ),
             { code: errorDetails?.code },
           );
         }
@@ -204,6 +204,7 @@ const getDataProviderWithCustomMethods = () => {
         email,
         password,
         options: {
+          emailRedirectTo: getAuthCallbackUrl(),
           data: {
             first_name,
             last_name,

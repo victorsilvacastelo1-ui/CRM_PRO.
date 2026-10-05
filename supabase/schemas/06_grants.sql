@@ -175,3 +175,13 @@ alter default privileges for role postgres in schema public grant all on tables 
 alter default privileges for role postgres in schema public grant all on tables to anon;
 alter default privileges for role postgres in schema public grant all on tables to authenticated;
 alter default privileges for role postgres in schema public grant all on tables to service_role;
+
+-- Internal deletion trigger (present in the hosted CRM schema). It must not
+-- be exposed as a callable RPC. PostgreSQL trigger execution is preserved.
+do $$
+begin
+  if to_regprocedure('public.handle_delete_user()') is not null then
+    execute 'revoke execute on function public.handle_delete_user() from public, anon, authenticated';
+  end if;
+end;
+$$;

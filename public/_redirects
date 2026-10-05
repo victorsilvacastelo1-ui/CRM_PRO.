@@ -1,0 +1,9 @@
+/sistema/auth-callback.html /auth-callback.html 200
+/sistema/auth-callback /auth-callback.html 200
+/auth-callback /auth-callback.html 200
+/termos /termos.html 200
+/privacidade /privacidade.html 200
+/sistema /sistema.html 200
+/sistema/ /sistema.html 200
+/app /sistema.html 200
+/* /sistema.html 200

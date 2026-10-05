@@ -8,8 +8,6 @@ import { CustomRoutes, localStorageStore, Resource } from "ra-core";
 import { useEffect, useMemo } from "react";
 import { Route } from "react-router";
 import { QueryClient } from "@tanstack/react-query";
-import { PersistQueryClientProvider } from "@tanstack/react-query-persist-client";
-import { createAsyncStoragePersister } from "@tanstack/query-async-storage-persister";
 import { Admin } from "@/components/admin/admin";
 import { ForgotPasswordPage } from "@/components/supabase/forgot-password-page";
 import { SetPasswordPage } from "@/components/supabase/set-password-page";
@@ -280,63 +278,53 @@ const MobileAdmin = (
     layout?: LayoutComponent;
   },
 ) => {
-  const queryClient = new QueryClient({
-    defaultOptions: {
-      queries: {
-        gcTime: 1000 * 60 * 60 * 24, // 24 hours
-        networkMode: "offlineFirst",
-      },
-      mutations: {
-        networkMode: "offlineFirst",
-      },
-    },
-  });
-  const asyncStoragePersister = createAsyncStoragePersister({
-    storage: localStorage,
-  });
+  // Do not persist customer records in a shared browser across accounts.
+  const queryClient = useMemo(() => new QueryClient(), []);
+  useEffect(() => {
+    try {
+      localStorage.removeItem("REACT_QUERY_OFFLINE_CACHE");
+    } catch {
+      // The browser can disable storage without preventing online access.
+    }
+  }, []);
 
   return (
-    <PersistQueryClientProvider
-      client={queryClient}
-      persistOptions={{ persister: asyncStoragePersister }}
+    <Admin
+      queryClient={queryClient}
+      layout={props.layout ?? MobileLayout}
+      dashboard={props.dashboard ?? MobileDashboard}
+      {...props}
     >
-      <Admin
-        queryClient={queryClient}
-        layout={props.layout ?? MobileLayout}
-        dashboard={props.dashboard ?? MobileDashboard}
-        {...props}
+      <CustomRoutes noLayout>
+        <Route path={SignupPage.path} element={<SignupPage />} />
+        <Route
+          path={ConfirmationRequired.path}
+          element={<ConfirmationRequired />}
+        />
+        <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
+        <Route
+          path={ForgotPasswordPage.path}
+          element={<ForgotPasswordPage />}
+        />
+        <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
+      </CustomRoutes>
+      <CustomRoutes>
+        <Route
+          path={SettingsPageMobile.path}
+          element={<SettingsPageMobile />}
+        />
+        <Route path={ChangelogPage.path} element={<ChangelogPage />} />
+      </CustomRoutes>
+      <Resource
+        name="contacts"
+        list={ContactListMobile}
+        show={ContactShow}
+        recordRepresentation={contacts.recordRepresentation}
       >
-        <CustomRoutes noLayout>
-          <Route path={SignupPage.path} element={<SignupPage />} />
-          <Route
-            path={ConfirmationRequired.path}
-            element={<ConfirmationRequired />}
-          />
-          <Route path={SetPasswordPage.path} element={<SetPasswordPage />} />
-          <Route
-            path={ForgotPasswordPage.path}
-            element={<ForgotPasswordPage />}
-          />
-          <Route path={OAuthConsentPage.path} element={<OAuthConsentPage />} />
-        </CustomRoutes>
-        <CustomRoutes>
-          <Route
-            path={SettingsPageMobile.path}
-            element={<SettingsPageMobile />}
-          />
-          <Route path={ChangelogPage.path} element={<ChangelogPage />} />
-        </CustomRoutes>
-        <Resource
-          name="contacts"
-          list={ContactListMobile}
-          show={ContactShow}
-          recordRepresentation={contacts.recordRepresentation}
-        >
-          <Route path=":id/notes/:noteId" element={<NoteShowPage />} />
-        </Resource>
-        <Resource name="companies" show={CompanyShow} />
-        <Resource name="tasks" list={MobileTasksList} />
-      </Admin>
-    </PersistQueryClientProvider>
+        <Route path=":id/notes/:noteId" element={<NoteShowPage />} />
+      </Resource>
+      <Resource name="companies" show={CompanyShow} />
+      <Resource name="tasks" list={MobileTasksList} />
+    </Admin>
   );
 };

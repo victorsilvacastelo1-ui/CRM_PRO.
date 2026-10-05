@@ -1,6 +1,13 @@
 import { useState } from "react";
 import { useResetPassword } from "ra-supabase-core";
-import { Form, required, useNotify, useRedirect, useTranslate } from "ra-core";
+import {
+  Form,
+  email,
+  required,
+  useNotify,
+  useRedirect,
+  useTranslate,
+} from "ra-core";
 import { Layout } from "@/components/supabase/layout";
 import type { FieldValues, SubmitHandler } from "react-hook-form";
 import { TextInput } from "@/components/admin/text-input";
@@ -27,7 +34,7 @@ export const ForgotPasswordPage = () => {
     try {
       setLoading(true);
       await resetPassword({
-        email: values.email,
+        email: values.email.trim().toLowerCase(),
       });
     } catch (error: any) {
       notify(
@@ -76,8 +83,9 @@ export const ForgotPasswordPage = () => {
           label={translate("ra.auth.email", {
             _: "Email",
           })}
+          type="email"
           autoComplete="email"
-          validate={required()}
+          validate={[required(), email()]}
         />
         <Button type="submit" className="cursor-pointer" disabled={loading}>
           {translate("crm.action.reset_password", {

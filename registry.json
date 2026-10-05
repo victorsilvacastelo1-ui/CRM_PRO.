@@ -162,6 +162,10 @@
           "type": "registry:component"
         },
         {
+          "path": "src/components/atomic-crm/sales/salesErrorNotification.ts",
+          "type": "registry:component"
+        },
+        {
           "path": "src/components/atomic-crm/sales/index.ts",
           "type": "registry:component"
         },
@@ -219,6 +223,10 @@
         },
         {
           "path": "src/components/atomic-crm/providers/supabase/authProvider.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/supabase/authCallback.ts",
           "type": "registry:component"
         },
         {
@@ -303,6 +311,18 @@
         },
         {
           "path": "src/components/atomic-crm/providers/fakerest/dataGenerator/companies.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/commons/ptBrSupabaseMessages.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/commons/ptBrRaMessages.ts",
+          "type": "registry:component"
+        },
+        {
+          "path": "src/components/atomic-crm/providers/commons/portugueseCrmMessages.ts",
           "type": "registry:component"
         },
         {

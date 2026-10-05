@@ -1,4 +1,4 @@
-import { useMutation } from "@tanstack/react-query";
+import { useMutation, useQueryClient } from "@tanstack/react-query";
 import {
   useDataProvider,
   useEditController,
@@ -30,12 +30,13 @@ function EditToolbar() {
 export function SalesEdit() {
   const { record } = useEditController();
 
+  const queryClient = useQueryClient();
   const dataProvider = useDataProvider<CrmDataProvider>();
   const notify = useNotify();
   const redirect = useRedirect();
   const translate = useTranslate();
 
-  const { mutate } = useMutation({
+  const { mutateAsync } = useMutation({
     mutationKey: ["signup"],
     mutationFn: async (data: SalesFormData) => {
       if (!record) {
@@ -47,7 +48,8 @@ export function SalesEdit() {
       }
       return dataProvider.salesUpdate(record.id, data);
     },
-    onSuccess: () => {
+    onSuccess: async () => {
+      await queryClient.invalidateQueries({ queryKey: ["sales"] });
       redirect("/sales");
       notify("resources.sales.edit.success", {
         messageArgs: {
@@ -68,7 +70,11 @@ export function SalesEdit() {
   });
 
   const onSubmit: SubmitHandler<SalesFormData> = async (data) => {
-    mutate(data);
+    try {
+      await mutateAsync(data);
+    } catch {
+      // onError already displays the server response. Keep the form open.
+    }
   };
 
   return (
