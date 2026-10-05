@@ -1,9 +1,20 @@
-import { useState } from "react";
-import { Form, required, useNotify, useTranslate } from "ra-core";
-import { useSetPassword, useSupabaseAccessToken } from "ra-supabase-core";
+import { useEffect, useState } from "react";
+import {
+  Form,
+  minLength,
+  required,
+  useNotify,
+  useRedirect,
+  useTranslate,
+} from "ra-core";
+import type { Session } from "@supabase/supabase-js";
+import type { FieldValues, SubmitHandler } from "react-hook-form";
+import { Link, useLocation } from "react-router";
 import { Button } from "@/components/ui/button";
 import { TextInput } from "@/components/admin/text-input";
 import { Layout } from "@/components/supabase/layout";
+import { getSupabaseClient } from "@/components/atomic-crm/providers/supabase/supabase";
+import { readAuthParams } from "@/components/atomic-crm/providers/supabase/authCallback";
 
 interface SetPasswordFormData {
   password: string;
@@ -12,63 +23,80 @@ interface SetPasswordFormData {
 
 export const SetPasswordPage = () => {
   const [loading, setLoading] = useState(false);
-
-  const access_token = useSupabaseAccessToken();
-  const refresh_token = useSupabaseAccessToken({
-    parameterName: "refresh_token",
-  });
-
+  const [session, setSession] = useState<Session | null>();
   const notify = useNotify();
   const translate = useTranslate();
-  const [, { mutateAsync: setPassword }] = useSetPassword();
+  const redirect = useRedirect();
+  const location = useLocation();
 
-  const validate = (values: SetPasswordFormData) => {
-    if (values.password !== values.confirmPassword) {
-      return {
-        password: "ra-supabase.validation.password_mismatch",
-        confirmPassword: "ra-supabase.validation.password_mismatch",
-      };
+  useEffect(() => {
+    let active = true;
+    const params = readAuthParams(window.location);
+    // Older emails may point directly to this page with token parameters.
+    // Route them through the same validated callback before showing the form.
+    if (params.has("access_token") || params.has("code")) {
+      redirect(`/auth-callback?${params.toString()}`);
+      return;
     }
-    return {};
-  };
+    if (new URLSearchParams(location.search).has("error")) {
+      setSession(null);
+      return;
+    }
+    getSupabaseClient()
+      .auth.getSession()
+      .then(({ data, error }) => {
+        if (active) setSession(error ? null : data.session);
+      })
+      .catch(() => {
+        if (active) setSession(null);
+      });
+    return () => {
+      active = false;
+    };
+  }, [location.search, redirect]);
 
-  if (!access_token || !refresh_token) {
-    if (process.env.NODE_ENV === "development") {
-      console.error("Missing access_token or refresh_token for set password");
-    }
+  if (session === undefined) {
     return (
       <Layout>
-        <p>{translate("ra-supabase.auth.missing_tokens")}</p>
+        <p role="status">Verificando seu link...</p>
+      </Layout>
+    );
+  }
+  if (!session) {
+    return (
+      <Layout>
+        <h1 className="text-2xl font-semibold">Link inválido ou expirado</h1>
+        <p>
+          Solicite um novo link e abra o e-mail mais recente para definir sua
+          senha.
+        </p>
+        <Button asChild>
+          <Link to="/forgot-password">Solicitar novo link</Link>
+        </Button>
+        <Link to="/login" className="text-center underline">
+          Voltar para entrar
+        </Link>
       </Layout>
     );
   }
 
   const submit = async (values: SetPasswordFormData) => {
+    setLoading(true);
     try {
-      setLoading(true);
-      await setPassword({
-        access_token,
-        refresh_token,
+      const { error } = await getSupabaseClient().auth.updateUser({
         password: values.password,
       });
-    } catch (error: any) {
+      if (error) throw error;
+      notify("Senha atualizada com sucesso.", { type: "success" });
+      // Replace the callback entry, removing tokens from browser history.
+      window.history.replaceState(null, "", `${window.location.pathname}#/`);
+      redirect("/");
+    } catch (error) {
       notify(
-        typeof error === "string"
-          ? error
-          : typeof error === "undefined" || !error.message
-            ? "ra.auth.sign_in_error"
-            : error.message,
-        {
-          type: "warning",
-          messageArgs: {
-            _:
-              typeof error === "string"
-                ? error
-                : error && error.message
-                  ? error.message
-                  : undefined,
-          },
-        },
+        error instanceof Error
+          ? error.message
+          : "Não foi possível atualizar a senha. Tente novamente.",
+        { type: "error" },
       );
     } finally {
       setLoading(false);
@@ -77,37 +105,34 @@ export const SetPasswordPage = () => {
 
   return (
     <Layout>
-      <div className="flex flex-col space-y-2 text-center">
-        <h1 className="text-2xl font-semibold tracking-tight">
-          {translate("ra-supabase.set_password.new_password", {
-            _: "Choose your password",
-          })}
-        </h1>
-      </div>
+      <h1 className="text-2xl font-semibold text-center">Defina sua senha</h1>
+      <p>Use pelo menos 8 caracteres.</p>
       <Form
-        className="space-y-8"
-        onSubmit={submit as any}
-        validate={validate as any}
+        className="space-y-6"
+        onSubmit={submit as SubmitHandler<FieldValues>}
       >
         <TextInput
-          label={translate("ra.auth.password", {
-            _: "Password",
-          })}
-          autoComplete="new-password"
+          label="Nova senha"
           source="password"
           type="password"
-          validate={required()}
+          autoComplete="new-password"
+          validate={[required(), minLength(8)]}
         />
         <TextInput
-          label={translate("crm.auth.confirm_password", {
-            _: "Confirm password",
-          })}
+          label="Confirmar senha"
           source="confirmPassword"
           type="password"
-          validate={required()}
+          autoComplete="new-password"
+          validate={[
+            required(),
+            (value, values) =>
+              value === values.password
+                ? undefined
+                : "As senhas não coincidem.",
+          ]}
         />
-        <Button type="submit" className="cursor-pointer" disabled={loading}>
-          {translate("ra.action.save")}
+        <Button type="submit" disabled={loading}>
+          {loading ? "Salvando..." : translate("ra.action.save")}
         </Button>
       </Form>
     </Layout>
