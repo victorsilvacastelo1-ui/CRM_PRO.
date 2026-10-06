@@ -1,10 +1,10 @@
 import { useState } from "react";
-import { useResetPassword } from "ra-supabase-core";
 import { Form, required, useNotify, useRedirect, useTranslate } from "ra-core";
 import { Layout } from "@/components/supabase/layout";
 import type { FieldValues, SubmitHandler } from "react-hook-form";
 import { TextInput } from "@/components/admin/text-input";
 import { Button } from "@/components/ui/button";
+import { getSupabaseClient } from "@/components/atomic-crm/providers/supabase/supabase";
 
 interface FormData {
   email: string;
@@ -16,19 +16,22 @@ export const ForgotPasswordPage = () => {
   const notify = useNotify();
   const redirect = useRedirect();
   const translate = useTranslate();
-  const [, { mutateAsync: resetPassword }] = useResetPassword({
-    onSuccess: () => {
-      redirect("/login?passwordRecoveryEmailSent=1");
-    },
-    onError: () => undefined,
-  });
 
   const submit = async (values: FormData) => {
     try {
       setLoading(true);
-      await resetPassword({
-        email: values.email,
-      });
+
+      const redirectTo = `${window.location.origin}/auth-callback.html`;
+      const { error } = await getSupabaseClient().auth.resetPasswordForEmail(
+        values.email,
+        { redirectTo },
+      );
+
+      if (error) {
+        throw error;
+      }
+
+      redirect("/login?passwordRecoveryEmailSent=1");
     } catch (error: any) {
       notify(
         typeof error === "string"
