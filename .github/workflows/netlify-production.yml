@@ -1,0 +1,48 @@
+name: 🚀 Publicar CRM Pro no Netlify
+
+on:
+  push:
+    branches:
+      - main
+  workflow_dispatch:
+
+concurrency:
+  group: crm-pro-netlify-production
+  cancel-in-progress: true
+
+permissions:
+  contents: read
+
+jobs:
+  deploy:
+    name: Build e deploy no Netlify
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+
+    env:
+      VITE_IS_DEMO: "false"
+      VITE_SUPABASE_URL: "https://pulsssmguyfhnfsfukgm.supabase.co"
+      VITE_SB_PUBLISHABLE_KEY: "sb_publishable_pgU8Kym0OHyURQPE-TIvrA_UvmRa2-B"
+      VITE_ATTACHMENTS_BUCKET: "attachments"
+      VITE_INBOUND_EMAIL: ""
+      NETLIFY_SITE_ID: "4a32f899-4ab3-4426-aa69-64152f92dc42"
+      NETLIFY_AUTH_TOKEN: ${{ secrets.NETLIFY_AUTH_TOKEN }}
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Setup Node
+        uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Instalar dependências
+        run: npm ci
+
+      - name: Build CRM Pro
+        run: npm run build
+
+      - name: Publicar no Netlify
+        run: npx netlify-cli deploy --dir=dist --prod --site "$NETLIFY_SITE_ID" --auth "$NETLIFY_AUTH_TOKEN"
