@@ -130,9 +130,17 @@
         };
 
         function interceptAuthCallback() {
-                const hash = window.location.hash;
-                const {access_token, refresh_token, type} = getUrlParams();
-                window.location.href = `./#/auth-callback?access_token=${access_token}&refresh_token=${refresh_token}&type=${type}`;
+            const { access_token, refresh_token, type } = getUrlParams();
+            const params = new URLSearchParams();
+
+            if (access_token) params.set("access_token", access_token);
+            if (refresh_token) params.set("refresh_token", refresh_token);
+            if (type) params.set("type", type);
+
+            const destination =
+                type === "recovery" ? "set-password" : "auth-callback";
+
+            window.location.href = `./#/${destination}?${params.toString()}`;
         }
     
         // Call the function to intercept the auth callback
